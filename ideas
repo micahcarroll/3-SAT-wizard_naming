@@ -1,0 +1,6 @@
+one set for each var, update all the elements of the set once any change is made to an element involving that
+
+- CSP / backtracking / forward checking / AC
+- Local search
+- Randomizing 1st and 2nd term
+- Think about strategies that make it harder to solve (depends on what kind of approach you use for solver)
