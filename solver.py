@@ -79,7 +79,7 @@ class Constraints(object):
 
         return constraints_2_terms + Constraints.generate_3_term_constraints(wiz)
 
-    def generate_3_term_constraints(self):
+    def generate_3_term_constraints(wiz):
         # possible combinations:
         # 12 + 13 + 23
         # 12 + 13 + ¬23
@@ -91,8 +91,7 @@ class Constraints(object):
         # NOT ALLOWED
         # 12 + ¬13 + 23
         # ¬12 + 13 + ¬23
-
-        wizards = self.wiz.encoded_list
+        wizards = wiz.encoded_list
         constraints = []
 
         for i in wizards:
@@ -158,39 +157,31 @@ class Variables(object):
     returns useful information for further manipulation
     """
     def __init__(self, sat_solution, wiz):
-        self.list = [var for var in sat_solution if (len(self.clean(var)) == 4
-                                                     and self.first_half(var) < self.second_half(var)
-                                                     and self.first_half(var) in wiz.wizard_decoder
-                                                     and self.second_half(var) in wiz.wizard_decoder)]
         self.wiz = wiz
+        self.list = self.populate(sat_solution)
+        self.num_list = self.populate_num_list()
 
-    def clean(self, var):
-        s = str(var)
-        if s[0] == '-':
-            return s[1:]
-        return s
+    def populate(self, sat_solution):
+        """
+        Populates variable list
+        """
+        variable_list = []
+        for number in sat_solution:
+            if len(Variable.clean(number)) == 4:
+                var = Variable(number)
+                if var.first_half < var.second_half and var.first_half in self.wiz.wizard_decoder and var.second_half in self.wiz.wizard_decoder:
+                    variable_list.append(var)
+        return variable_list
 
-    def first_half(self, var):
-        v = self.clean(var)
-        if len(v) != 4:
-            print("ERROR")
-        return int(str(v)[:2])
-
-    def second_half(self, var):
-        v = self.clean(var)
-        if len(v) != 4:
-            print("ERROR")
-        return int(str(v)[2:])
-
-    def both_sides(self, var):
-        return self.first_half(var), self.second_half(var)
+    def populate_num_list(self):
+        return [var.num for var in self.list]
 
     def involving_enc(self, x):
         # Returns a list of all variables involving a
         lst = []
-        for item in self.list:
-            a = self.first_half(item)
-            b = self.second_half(item)
+        for var in self.list:
+            a = var.first_half
+            b = var.second_half
 
             if (a == x or b == x) and (a < b):
                 lst.append(item)
@@ -202,32 +193,32 @@ class Variables(object):
         else:
             code = int(str(y) + str(x))
 
-        if code in self.list:
+        if code in self.num_list:
             return code
-        elif -code in self.list:
+        elif -code in self.num_list:
             return -code
         else:
             return None
 
     def between_decoded(self, x, y):
-        result = self.between(x, y)
+        result = Variable(self.between(x, y))
         v = str(result)
         s = " smaller "
         if str(v[0]) == '-':
             s = " larger "
 
-        first = self.wiz.decode_wizard(self.first_half(result))
-        second = self.wiz.decode_wizard(self.second_half(result))
+        first = self.wiz.decode_wizard(result.first_half)
+        second = self.wiz.decode_wizard(result.second_half)
         #print(first + " is" + s + "than " + second)
         return [first, s, second]
 
     def smaller_than_enc(self, a, b):
         # i.e. "before"
         if a < b:
-            if int(str(a) + str(b)) in self.list:
+            if int(str(a) + str(b)) in self.num_list:
                 return True
         else:
-            if -int(str(b) + str(a)) in self.list:
+            if -int(str(b) + str(a)) in self.num_list:
                 return True
         return False
 
@@ -242,26 +233,32 @@ class Variables(object):
     def larger_than_name(self, name_1, name_2):
         return not self.smaller_than_name(name_1, name_2)
 
-    def is_negative(self, constraint):
-        return str(constraint)[0] == '-'
+class Variable(object):
+    def __init__(self, num):
+        self.num = num
+        self.first_half, self.second_half = self.decompose()
 
-    def check_solution_on_constraints(self, solution):
-        """FOR DEBUGGING ONLY, WE DON'T HAVE ACCESS TO SOL IRL"""
-        encoded_sol = self.wiz.encode_wizards(solution)
+    @property
+    def is_true(self):
+        return self.num
 
-        for constraint in self.list:
-            first = self.first_half(constraint)
-            second = self.second_half(constraint)
+    @property
+    def is_false(self):
+        return self.num < 0
 
-            if not self.is_negative(constraint):
-                if not encoded_sol.index(first) < encoded_sol.index(second):
-                    print(self.wiz.decode_wizard(first) + " was found after " +
-                    self.wiz.decode_wizard(second))
-            else:
-                if not encoded_sol.index(first) > encoded_sol.index(second):
-                    print(self.wiz.decode_wizard(first) + " was found after " +
-                    self.wiz.decode_wizard(second))
+    def clean(number):
+        if str(number)[0] == '-':
+            return str(number)[1:]
+        return str(number)
 
+    def decompose(self):
+        v = Variable.clean(self.num)
+        if len(v) != 4:
+            print("ERROR")
+        return int(str(v)[:2]), int(str(v)[2:])
+
+    def switch(self):
+        self.num = -self.num 
 
 class OrderWizards(object):
     # Searches for ordering of wizards that satisfies the Variables
