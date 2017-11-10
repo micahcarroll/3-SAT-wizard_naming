@@ -184,7 +184,7 @@ class Variables(object):
             b = var.second_half
 
             if (a == x or b == x) and (a < b):
-                lst.append(item)
+                lst.append(var)
         return lst
 
     def between(self, x, y):
