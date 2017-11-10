@@ -68,10 +68,10 @@ def generateRandomConstraints(size):
         constraint.append(clause)
     return constraint
 
-for i in range(0, 10):
-    for i in {10, 20, 30, 40, 50}:
-        c1 = generateRandomConstraints(i)
-        print(checkSatisfiability(schoningRandomized3SAT(c1), c1))
+# for i in range(0, 10):
+#     for i in {10, 20, 30, 40, 50}:
+#         c1 = generateRandomConstraints(i)
+#         print(checkSatisfiability(schoningRandomized3SAT(c1), c1))
 
 
 

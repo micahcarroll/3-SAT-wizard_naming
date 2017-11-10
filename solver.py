@@ -277,8 +277,8 @@ class OrderWizards(object):
                 ith_solution_wizard = solution[i]
 
                 if self.var.larger_than_enc(wizard, ith_solution_wizard):
-                    #print(self.wiz.decode_wizard(wizard) + " is larger than " +
-                    #      self.wiz.decode_wizard(ith_solution_wizard) + " at index " + str(i))
+                    print(self.wiz.decode_wizard(wizard) + " is larger than " +
+                          self.wiz.decode_wizard(ith_solution_wizard) + " at index " + str(i))
                     target_index = i + 1
 
             print("Inserting " + self.wiz.decode_wizard(wizard) +
@@ -286,7 +286,7 @@ class OrderWizards(object):
 
             solution.insert(target_index, wizard)
 
-            #print(self.wiz.decode_wizards(solution))
+            print(self.wiz.decode_wizards(solution))
 
             if check_for_non_valid_constraint(self.wiz.decode_wizards(solution), constraints) is not None:
                 pass
@@ -311,11 +311,13 @@ def solve(num_wizards, num_constraints, wizards, constraints):
     wiz = Wiz(wizards)
     sat_constraints = Constraints.get_all_sat_constraints(wiz, constraints)
 
-    #sat_solution = pycosat.solve(sat_constraints)
+    sat_solution2 = pycosat.solve(sat_constraints)
     sat_solution = randomized3SAT.schoningRandomized3SAT(sat_constraints)
 
     var = Variables(sat_solution, wiz)
+    var = Variables(sat_solution2, wiz)
     search = OrderWizards(var, wiz)
+    search2 = OrderWizards(var2, wiz)
     result = wiz.decode_wizards(search.naive_search(constraints))
     #print(result)
 
