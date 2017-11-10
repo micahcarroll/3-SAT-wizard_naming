@@ -15,7 +15,6 @@ import pycosat
 # the problem is that this is 3SAT not 2SAT, so we have to encode that there can't be loops in ordering
 # ab + bc => ¬ ca
 
-
 class Wiz(object):
     # Wizard Manager
     # Each wizard is encoded into a two digit number
@@ -58,34 +57,65 @@ class Constraints(object):
     Each instance is a constraint of the form [a b c d]
     "a or b or c or d"
     """
-
     def __init__(self, constraint, wiz):
         self.wiz = wiz
         self.list = constraint
         self.encoded = wiz.encode_wizards(constraint)
 
     def get_all_sat_constraints(wiz, constraints):
-        new_constraints = []
+        constraints_2_terms = []
 
         for constraint in constraints:
             if constraint == []:
                 return
 
-            constraint = Constraints(constraint, wiz)
-            double_constraint = constraint.convert()
+            double_constraint = Constraint(constraint, wiz).convert()
             c = double_constraint[0]
             r = double_constraint[1]
-            if c not in new_constraints:
-                new_constraints.append(c)  # make into a set
-            if r not in new_constraints:
-                new_constraints.append(r)
+            if c not in constraints_2_terms:
+                constraints_2_terms.append(c)  # make into a set
+            if r not in constraints_2_terms:
+                constraints_2_terms.append(r)
 
-        sat_3_constraints = Constraints.generate_3_term_constraints(wiz)
-        new_constraints = new_constraints + sat_3_constraints
+        return constraints_2_terms + Constraints.generate_3_term_constraints(wiz)
 
-        return new_constraints
-        
+    def generate_3_term_constraints(self):
+        # possible combinations:
+        # 12 + 13 + 23
+        # 12 + 13 + ¬23
+        # 12 + ¬13 + ¬23
+        # ¬12 + 13 + 23
+        # ¬12 + ¬13 + 23
+        # ¬12 + ¬13 + ¬23
 
+        # NOT ALLOWED
+        # 12 + ¬13 + 23
+        # ¬12 + 13 + ¬23
+
+        wizards = self.wiz.encoded_list
+        constraints = []
+
+        for i in wizards:
+            for j in wizards:
+                for k in wizards:
+                    if i < j < k:
+                        c12 = int(str(i) + str(j))
+                        c13 = int(str(i) + str(k))
+                        c23 = int(str(j) + str(k))
+
+                        not_allowed = [c12, -c13, c23]
+                        not_allowed_reverse = [-c12, c13, -c23]
+                        constraints.append(not_allowed)
+                        constraints.append(not_allowed_reverse)
+
+        return constraints
+
+class Constraint(object):
+    def __init__(self, constraint, wiz):
+        self.wiz = wiz
+        self.list = constraint
+        self.encoded = wiz.encode_wizards(constraint)
+    
     def convert(self):
         """
         For each constraint "m not btw a and b" return a constraint 
@@ -122,45 +152,11 @@ class Constraints(object):
 
         return sat_constraint, reverse_constraint
 
-    def generate_3_term_constraints(wiz):
-        # possible combinations:
-        # 12 + 13 + 23
-        # 12 + 13 + ¬23
-        # 12 + ¬13 + ¬23
-        # ¬12 + 13 + 23
-        # ¬12 + ¬13 + 23
-        # ¬12 + ¬13 + ¬23
-
-        # NOT ALLOWED
-        # 12 + ¬13 + 23
-        # ¬12 + 13 + ¬23
-
-        wizards = wiz.encoded_list
-        constraints = []
-
-        for i in wizards:
-            for j in wizards:
-                for k in wizards:
-                    if i < j < k:
-                        c12 = int(str(i) + str(j))
-                        c13 = int(str(i) + str(k))
-                        c23 = int(str(j) + str(k))
-
-                        not_allowed = [c12, -c13, c23]
-                        not_allowed_reverse = [-c12, c13, -c23]
-                        constraints.append(not_allowed)
-                        constraints.append(not_allowed_reverse)
-
-        return constraints
-
-
-
 class Variables(object):
     """
     Stores variable assignment returned by 2SAT and
     returns useful information for further manipulation
     """
-
     def __init__(self, sat_solution, wiz):
         self.list = [var for var in sat_solution if (len(self.clean(var)) == 4
                                                      and self.first_half(var) < self.second_half(var)
@@ -249,21 +245,22 @@ class Variables(object):
     def is_negative(self, constraint):
         return str(constraint)[0] == '-'
 
-    # def check_solution_on_constraints(self, solution):
-    #     encoded_sol = self.wiz.encode_wizards(solution)
+    def check_solution_on_constraints(self, solution):
+        """FOR DEBUGGING ONLY, WE DON'T HAVE ACCESS TO SOL IRL"""
+        encoded_sol = self.wiz.encode_wizards(solution)
 
-    #     for constraint in self.list:
-    #         first = self.first_half(constraint)
-    #         second = self.second_half(constraint)
+        for constraint in self.list:
+            first = self.first_half(constraint)
+            second = self.second_half(constraint)
 
-    #         if not self.is_negative(constraint):
-    #             if not encoded_sol.index(first) < encoded_sol.index(second):
-    #                 print(self.wiz.decode_wizard(first) + " was found after " +
-    #                 self.wiz.decode_wizard(second))
-    #         else:
-    #             if not encoded_sol.index(first) > encoded_sol.index(second):
-    #                 print(self.wiz.decode_wizard(first) + " was found after " +
-    #                 self.wiz.decode_wizard(second))
+            if not self.is_negative(constraint):
+                if not encoded_sol.index(first) < encoded_sol.index(second):
+                    print(self.wiz.decode_wizard(first) + " was found after " +
+                    self.wiz.decode_wizard(second))
+            else:
+                if not encoded_sol.index(first) > encoded_sol.index(second):
+                    print(self.wiz.decode_wizard(first) + " was found after " +
+                    self.wiz.decode_wizard(second))
 
 
 class OrderWizards(object):
