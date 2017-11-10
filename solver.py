@@ -1,6 +1,7 @@
 import argparse
 import random
 import pycosat
+import randomized3SAT
 
 """
 ======================================================================
@@ -310,7 +311,9 @@ def solve(num_wizards, num_constraints, wizards, constraints):
     wiz = Wiz(wizards)
     sat_constraints = Constraints.get_all_sat_constraints(wiz, constraints)
 
-    sat_solution = pycosat.solve(sat_constraints)
+    #sat_solution = pycosat.solve(sat_constraints)
+    sat_solution = randomized3SAT.schoningRandomized3SAT(sat_constraints)
+
     var = Variables(sat_solution, wiz)
     search = OrderWizards(var, wiz)
     result = wiz.decode_wizards(search.naive_search(constraints))
