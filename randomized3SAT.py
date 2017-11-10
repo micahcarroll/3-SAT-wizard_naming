@@ -17,24 +17,32 @@ def schoningRandomized3SAT(constraints):
             variables.add(abs(variable))
     randomBinarySequence = [random.randint(0, 1) for i in range(0, len(variables))]
 
-    variables = list(variables)
+    variablesList = list(variables)
     randomAssignment = set()
     for i in range(0, len(variables)):
         if randomBinarySequence[i]: 
-            randomAssignment.add(variables[i])
-
+            randomAssignment.add(variablesList[i])
     
     for i in range(0, 3 * len(variables)):
         satisfiable, clause = checkSatisfiability(randomAssignment, constraints)
         if satisfiable:
-            return randomAssignment
+            difference = variables.difference(randomAssignment)
+            falseVariables = set()
+            for diff in difference:
+                falseVariables.add(-1 * diff)
+            return randomAssignment.union(falseVariables)
         else:
             flipVariable = clause[random.randint(0, len(clause) - 1)]
             if abs(flipVariable) in randomAssignment:
                 randomAssignment.remove(abs(flipVariable))
             else:
                 randomAssignment.add(abs(flipVariable))
-    return randomAssignment
+    
+    difference = variables.difference(randomAssignment)
+    falseVariables = set()       
+    for diff in difference:
+        falseVariables.add(-1 * diff)
+    return randomAssignment.union(falseVariables)
 
     
 def checkSatisfiability(assignment, constraints):
