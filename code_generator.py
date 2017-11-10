@@ -2,8 +2,6 @@ import argparse
 import random
 
 def write_output(filename, num_wizards, num_constraints):
-    order = generate_wizard_names(num_wizards)
-
     with open(filename, "w") as f:
         solution = generate_wizard_names(num_wizards)
         

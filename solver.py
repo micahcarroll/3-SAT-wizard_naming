@@ -307,7 +307,7 @@ def solve(num_wizards, num_constraints, wizards, constraints):
     Output:
         An array of wizard names in the ordering your algorithm returns
     """
-    # random.shuffle(wizards)
+    random.shuffle(wizards)
     wiz = Wiz(wizards)
     sat_constraints = Constraints.get_all_sat_constraints(wiz, constraints)
 
@@ -315,16 +315,16 @@ def solve(num_wizards, num_constraints, wizards, constraints):
     sat_solution = randomized3SAT.schoningRandomized3SAT(sat_constraints)
 
     var = Variables(sat_solution, wiz)
-    var = Variables(sat_solution2, wiz)
+    var2 = Variables(sat_solution2, wiz)
     search = OrderWizards(var, wiz)
     search2 = OrderWizards(var2, wiz)
-    result = wiz.decode_wizards(search.naive_search(constraints))
+    result = wiz.decode_wizards(search2.naive_search(constraints))
     #print(result)
-
-    if check_for_non_valid_constraint(result, constraints) is None:
+    errors = check_for_non_valid_constraint(result, constraints)
+    if errors is None:
         print("CHECK PASSED!")
 
-    return result
+    return result, errors
 
 
 def check_for_non_valid_constraint(ordering, constraints):
