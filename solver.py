@@ -22,8 +22,7 @@ class Wiz(object):
 
     def __init__(self, wizards):
         self.list = wizards
-        self.wizard_encoder, self.wizard_decoder = self.create_encoder_decoder(
-            wizards)
+        self.wizard_encoder, self.wizard_decoder = self.create_encoder_decoder(wizards)
         self.encoded_list = self.encode_wizards(wizards)
 
     def create_encoder_decoder(self, wizards):
@@ -355,13 +354,11 @@ def check_for_non_valid_constraint(ordering, constraints):
     else:
         return None
 
-
 """
 ======================================================================
    No need to change any code below this line
 ======================================================================
 """
-
 
 def read_input(filename):
     with open(filename) as f:

@@ -72,6 +72,3 @@ def generateRandomConstraints(size):
 #     for i in {10, 20, 30, 40, 50}:
 #         c1 = generateRandomConstraints(i)
 #         print(checkSatisfiability(schoningRandomized3SAT(c1), c1))
-
-
-
