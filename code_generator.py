@@ -48,11 +48,16 @@ def generate_chain_constraints(wizards, num_constraints):
     chain_count = int(math.ceil((triplet_count - 1) / 2.0))
     print("Creating {} triplets and {} chain constraints.".format(triplet_count, chain_count))
     triplet_start = 0
-    while triplet_start < len(wizards):
+    while triplet_start + 2 < len(wizards):
         constraints.append([wizards[triplet_start], wizards[(triplet_start+1)%len(wizards)], wizards[(triplet_start+2)%len(wizards)]])
         triplet_start += 3
+    missing_wizards = len(wizards) - triplet_start - 1
+    if missing_wizards == 1:
+        constraints.append([wizards[0], wizards[1], wizards[-1]])
+    elif missing_wizards == 2:
+        constraints.append([wizards[0], wizards[-2], wizards[-1]])
     chain_start = 0
-    while chain_start < len(wizards):
+    while chain_start + 6 < len(wizards):
         constraints.append([wizards[chain_start], wizards[(chain_start+3)%len(wizards)], wizards[(chain_start+6)%len(wizards)]])
         chain_start += 9
     print("Created a total of {} constraints.".format(len(constraints)))
