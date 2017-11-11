@@ -5,12 +5,12 @@ import math
 def write_output(filename, num_wizards, num_constraints):
     with open(filename, "w") as f:
         solution = generate_wizard_names(num_wizards)
+        random.shuffle(solution)
         
         f.write(str(num_wizards) + "\n")
         for wizard in solution:
             f.write("{0} ".format(wizard))
         
-
         constraints = generate_chain_constraints(solution, num_constraints, num_wizards)
         f.write("\n" + str(len(constraints)) + "\n")
 
@@ -30,7 +30,7 @@ def generate_constraints(wizards, num_constraints, num_wizards):
 
         while True:
             if len(constraints) == max_constraints:
-                return constraints
+                return list(constraints)
 
             constraint = generate_constraint(wizards, num_constraints, num_wizards)
 
@@ -40,11 +40,10 @@ def generate_constraints(wizards, num_constraints, num_wizards):
                 count += 1
                 break
 
-    return constraints
+    return list(constraints)
 
 def generate_interleaved_constraints(wizards, num_constraints, num_wizards):
     # abc, cde, edf, fgh 
-    random.shuffle(wizards)
     constraints = []
     print(len(wizards))
     for i in range(0, 2 * num_constraints, 2):
@@ -53,6 +52,7 @@ def generate_interleaved_constraints(wizards, num_constraints, num_wizards):
         constraint = [wizards[(i - 1) % len(wizards)], wizards[i % len(wizards)], wizards[(i + 1) % len(wizards)]]
         constraints.append(constraint)
 
+    print(constraints)
     return constraints
 
 def generate_chain_constraints(wizards, num_constraints, num_wizards):
@@ -60,7 +60,6 @@ def generate_chain_constraints(wizards, num_constraints, num_wizards):
     # num_constraints: ignored value
     # num_wizards: ignored value, deduced from len(wizards)
     # RETURNS: constraints of the form abc, def, ghi, adg
-    random.shuffle(wizards)
     constraints = []
     triplet_count = int(math.ceil(len(wizards) / 3.0))
     chain_count = int(math.ceil((triplet_count - 1) / 2.0))
@@ -74,7 +73,9 @@ def generate_chain_constraints(wizards, num_constraints, num_wizards):
         constraints.append([wizards[chain_start], wizards[(chain_start+3)%len(wizards)], wizards[(chain_start+6)%len(wizards)]])
         chain_start += 9
     print("Created a total of {} constraints.".format(len(constraints)))
-    return constraints
+
+    other_constraints = generate_constraints(wizards, num_constraints - len(constraints), num_wizards)
+    return constraints + other_constraints
 
 def calc_max_constraints(num_wizards):
     n = num_wizards 
