@@ -1,5 +1,6 @@
 import argparse
 import random
+import math
 
 def write_output(filename, num_wizards, num_constraints):
     with open(filename, "w") as f:
@@ -8,9 +9,11 @@ def write_output(filename, num_wizards, num_constraints):
         f.write(str(num_wizards) + "\n")
         for wizard in solution:
             f.write("{0} ".format(wizard))
-        f.write("\n" + str(num_constraints) + "\n")
+        
 
-        constraints = generate_constraints(solution, num_constraints, num_wizards)
+        constraints = generate_chain_constraints(solution, num_constraints, num_wizards)
+        f.write("\n" + str(len(constraints)) + "\n")
+
         for constraint in constraints:
             # randomize order when writing out
             for wizard in constraint:
@@ -52,7 +55,26 @@ def generate_interleaved_constraints(wizards, num_constraints, num_wizards):
 
     return constraints
 
-
+def generate_chain_constraints(wizards, num_constraints, num_wizards):
+    # wizards: list of wizard names
+    # num_constraints: ignored value
+    # num_wizards: ignored value, deduced from len(wizards)
+    # RETURNS: constraints of the form abc, def, ghi, adg
+    random.shuffle(wizards)
+    constraints = []
+    triplet_count = int(math.ceil(len(wizards) / 3.0))
+    chain_count = int(math.ceil((triplet_count - 1) / 2.0))
+    print("Creating {} triplets and {} chain constraints.".format(triplet_count, chain_count))
+    triplet_start = 0
+    while triplet_start < len(wizards):
+        constraints.append([wizards[triplet_start], wizards[(triplet_start+1)%len(wizards)], wizards[(triplet_start+2)%len(wizards)]])
+        triplet_start += 3
+    chain_start = 0
+    while chain_start < len(wizards):
+        constraints.append([wizards[chain_start], wizards[(chain_start+3)%len(wizards)], wizards[(chain_start+6)%len(wizards)]])
+        chain_start += 9
+    print("Created a total of {} constraints.".format(len(constraints)))
+    return constraints
 
 def calc_max_constraints(num_wizards):
     n = num_wizards 
