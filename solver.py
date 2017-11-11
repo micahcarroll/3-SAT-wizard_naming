@@ -279,16 +279,19 @@ class OrderWizards(object):
                 ith_solution_wizard = solution[i]
 
                 if self.var.larger_than_enc(wizard, ith_solution_wizard):
-                    #print(self.wiz.decode_wizard(wizard) + " is larger than " +
-                    #      self.wiz.decode_wizard(ith_solution_wizard) + " at index " + str(i))
+                    if DEBUG:
+                        print(self.wiz.decode_wizard(wizard) + " is larger than " +
+                            self.wiz.decode_wizard(ith_solution_wizard) + " at index " + str(i))
                     target_index = i + 1
 
-            #print("Inserting " + self.wiz.decode_wizard(wizard) +
-            #      " at index " + str(target_index))
+            if DEBUG:
+                print("Inserting " + self.wiz.decode_wizard(wizard) +
+                 " at index " + str(target_index))
 
             solution.insert(target_index, wizard)
 
-            #print(self.wiz.decode_wizards(solution))
+            if DEBUG:
+                print(self.wiz.decode_wizards(solution))
 
             if check_for_non_valid_constraint(self.wiz.decode_wizards(solution), constraints) is not None:
                 pass
@@ -321,7 +324,8 @@ def solve(num_wizards, num_constraints, wizards, constraints, sat2=False):
     search = OrderWizards(var, wiz)
     search2 = OrderWizards(var2, wiz)
     result = wiz.decode_wizards(search2.naive_search(constraints))
-    #print(result)
+    if DEBUG:
+        print(result)
     errors = check_for_non_valid_constraint(result, constraints)
     if errors is None:
         print("CHECK PASSED!")
@@ -392,7 +396,12 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Constraint Solver.")
     parser.add_argument("input_file", type=str, help="___.in")
     parser.add_argument("output_file", type=str, help="___.out")
+    parser.add_argument("debug", type=str, help="debug")
     args = parser.parse_args()
+
+    DEBUG = False
+    if args.debug:
+        DEBUG = True
 
     num_wizards, num_constraints, wizards, constraints, SOL = read_input(
         args.input_file)

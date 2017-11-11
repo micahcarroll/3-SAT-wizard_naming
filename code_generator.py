@@ -39,6 +39,19 @@ def generate_constraints(wizards, num_constraints, num_wizards):
 
     return constraints
 
+def generate_smart_constraints(wizards, num_constraints, num_wizards):
+    # abc, cde, edf, fgh 
+    random.shuffle(wizards)
+    constraints = []
+    print(len(wizards))
+    for i in range(0, 2 * num_constraints, 2):
+        print(i)
+        print(i + 1 % len(wizards))
+        constraint = [wizards[(i - 1) % len(wizards)], wizards[i % len(wizards)], wizards[(i + 1) % len(wizards)]]
+        constraints.append(constraint)
+
+    return constraints
+
 def calc_max_constraints(num_wizards):
     n = num_wizards 
     return (2 * (n - 2) + 3 * pow(n - 2, 2) + pow(n - 2, 3)) / 3
@@ -57,7 +70,7 @@ def generate_constraint(wizards, num_constraints, num_wizards):
     return (wizards[lower], wizards[upper], wizards[non_middle])
 
 def generate_wizard_names(num_wizards):
-    names = ['Emily', 'Andrew', 'Noah', 'Isaiah', 'Eliana', 'Benjamin', 'Adalyn', 'Matthew', 'Adeline', 'Caden', 'Sophia', 'Levi', 'Zoe', 'Landon', 'Mackenzie', 'Jayden', 'Arianna', 'Nicholas', 'Leah', 'Ella', 'Avery', 'Kaylee', 'Caleb', 'Christian', 'Jacob', 'Nora', 'Muhammad', 'Connor', 'Victoria', 'Sebastian', 'Aria', 'Charlotte', 'Emma', 'Ava', 'Lillian', 'Grayson', 'Julian', 'Layla', 'Brayden', 'Ellie', 'Hannah', 'Mila', 'Abigail', 'Madison', 'Camilla', 'Hailey', 'Brooklyn', 'Logan', 'Liam', 'Peyton', 'Anna', 'Elena', 'Alexander', 'Mia', 'Ryan', 'Elijah', 'Chloe', 'Aiden', 'Amelia', 'Dylan', 'Isaac', 'David', 'Henry', 'Jack', 'Cameron', 'Maria', 'Lily', 'Harper', 'Luke', 'Jayce', 'Addison', 'Evelyn', 'Wyatt', 'Grace', 'Gabriel', 'Aubrey', 'Scarlett', 'Aaliyah', 'Jackson', 'Owen', 'Eli', 'John', 'Madelyn', 'Riley', 'Daniel', 'Mason', 'Kenneth', 'Lincoln', 'Lucas', 'Oliver', 'Natalie', 'William', 'James', 'Elizabeth', 'Carter', 'Sarah', 'Isabella', 'Olivia', 'Nathan', 'Ethan']
+    names = ['Emily', 'Andrew', 'Noah', 'Isaiah', 'Eliana', 'Benjamin', 'Adalyn', 'Matthew', 'Adeline', 'Caden', 'Sophia', 'Levi', 'Zoe', 'Landon', 'Mackenzie', 'Jayden', 'Arianna', 'Nicholas', 'Leah', 'Ella', 'Avery', 'Kaylee', 'Caleb', 'Christian', 'Jacob', 'Nora', 'Muhammad', 'Connor', 'Victoria', 'Sebastian', 'Aria', 'Charlotte', 'Emma', 'Ava', 'Lillian', 'Grayson', 'Julian', 'Layla', 'Brayden', 'Ellie', 'Hannah', 'Mila', 'Abigail', 'Madison', 'Camilla', 'Hailey', 'Brooklyn', 'Logan', 'Liam', 'Peyton', 'Anna', 'Elena', 'Alexander', 'Mia', 'Ryan', 'Elijah', 'Chloe', 'Aiden', 'Amelia', 'Dylan', 'Isaac', 'David', 'Henry', 'Jack', 'Cameron', 'Maria', 'Lily', 'Harper', 'Luke', 'Jayce', 'Addison', 'Evelyn', 'Wyatt', 'Grace', 'Gabriel', 'Aubrey', 'Scarlett', 'Aaliyah', 'Jackson', 'Owen', 'Eli', 'John', 'Madelyn', 'Riley', 'Daniel', 'Mason', 'Kenneth', 'Lincoln', 'Lucas', 'Oliver', 'Natalie', 'William', 'James', 'Elizabeth', 'Carter', 'Sarah', 'Isabella', 'Olivia', 'Nathan', 'Ethan', 'Orkun', 'Micah']
     return random.sample(names, num_wizards)
 
 if __name__=="__main__":
