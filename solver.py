@@ -62,7 +62,7 @@ class Constraints(object):
         self.list = constraint
         self.encoded = wiz.encode_wizards(constraint)
 
-    def get_all_sat_constraints(wiz, constraints):
+    def get_all_sat_constraints(wiz, constraints, sat2=False):
         constraints_2_terms = []
 
         for constraint in constraints:
@@ -76,6 +76,9 @@ class Constraints(object):
                 constraints_2_terms.append(c)  # make into a set
             if r not in constraints_2_terms:
                 constraints_2_terms.append(r)
+
+        if sat2:
+            return constraints_2_terms
 
         return constraints_2_terms + Constraints.generate_3_term_constraints(wiz)
 
@@ -276,16 +279,16 @@ class OrderWizards(object):
                 ith_solution_wizard = solution[i]
 
                 if self.var.larger_than_enc(wizard, ith_solution_wizard):
-                    print(self.wiz.decode_wizard(wizard) + " is larger than " +
-                          self.wiz.decode_wizard(ith_solution_wizard) + " at index " + str(i))
+                    #print(self.wiz.decode_wizard(wizard) + " is larger than " +
+                    #      self.wiz.decode_wizard(ith_solution_wizard) + " at index " + str(i))
                     target_index = i + 1
 
-            print("Inserting " + self.wiz.decode_wizard(wizard) +
-                  " at index " + str(target_index))
+            #print("Inserting " + self.wiz.decode_wizard(wizard) +
+            #      " at index " + str(target_index))
 
             solution.insert(target_index, wizard)
 
-            print(self.wiz.decode_wizards(solution))
+            #print(self.wiz.decode_wizards(solution))
 
             if check_for_non_valid_constraint(self.wiz.decode_wizards(solution), constraints) is not None:
                 pass
@@ -293,7 +296,7 @@ class OrderWizards(object):
         return solution
 
 
-def solve(num_wizards, num_constraints, wizards, constraints):
+def solve(num_wizards, num_constraints, wizards, constraints, sat2=False):
     """
     Write your algorithm here.
     Input:
@@ -308,7 +311,7 @@ def solve(num_wizards, num_constraints, wizards, constraints):
     """
     random.shuffle(wizards)
     wiz = Wiz(wizards)
-    sat_constraints = Constraints.get_all_sat_constraints(wiz, constraints)
+    sat_constraints = Constraints.get_all_sat_constraints(wiz, constraints, sat2)
 
     sat_solution2 = pycosat.solve(sat_constraints)
     sat_solution = randomized3SAT.schoningRandomized3SAT(sat_constraints)
@@ -322,6 +325,8 @@ def solve(num_wizards, num_constraints, wizards, constraints):
     errors = check_for_non_valid_constraint(result, constraints)
     if errors is None:
         print("CHECK PASSED!")
+    if errors:
+        print("WTF BRO U GOT AN ERROR")
 
     return result, errors
 

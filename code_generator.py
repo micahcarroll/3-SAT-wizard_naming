@@ -20,7 +20,7 @@ def write_output(filename, num_wizards, num_constraints):
 def generate_constraints(wizards, num_constraints, num_wizards):
     constraints = set()
     max_constraints = calc_max_constraints(num_wizards)
-    print(max_constraints)
+    #print(max_constraints)
     count = 0
 
     for i in range(num_constraints):
@@ -32,7 +32,7 @@ def generate_constraints(wizards, num_constraints, num_wizards):
             constraint = generate_constraint(wizards, num_constraints, num_wizards)
 
             if constraint not in constraints:
-                print(constraint)
+                #print(constraint)
                 constraints.add(constraint)
                 count += 1
                 break

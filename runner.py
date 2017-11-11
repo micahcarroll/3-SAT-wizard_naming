@@ -2,7 +2,7 @@ import solver
 import code_generator
 import time
 
-def run(num_wizards, num_constraints):
+def run(num_wizards, num_constraints, sat2=False):
     solution = code_generator.generate_wizard_names(num_wizards)
     constraints = code_generator.generate_constraints(solution, num_constraints, num_wizards)
 
