@@ -3,37 +3,30 @@ import random
 import math
 
 def write_output(filename, num_wizards, num_constraints):
-    with open(filename, "w") as f:
-        solution = generate_wizard_names(num_wizards)
-        random.shuffle(solution)
-        
-        f.write(str(num_wizards) + "\n")
-        for wizard in solution:
-            f.write("{0} ".format(wizard))
-        
-        constraints = generate_chain_constraints(solution, num_constraints, num_wizards)
-        f.write("\n" + str(len(constraints)) + "\n")
+    wizards = generate_wizard_names(num_wizards)
+    constraints = generate_chain_constraints(wizards, num_constraints)
+    random.shuffle(constraints)
 
+    with open(filename, "w") as f:
+        f.write(str(len(wizards)) + "\n")
+        for wizard in wizards:
+            f.write("{0} ".format(wizard))
+        f.write("\n" + str(len(constraints)) + "\n")
         for constraint in constraints:
-            # randomize order when writing out
             for wizard in constraint:
                 f.write("{0} ".format(wizard))
             f.write("\n")
 
-def generate_constraints(wizards, num_constraints, num_wizards):
+def generate_constraints(wizards, num_constraints):
     constraints = set()
-    max_constraints = calc_max_constraints(num_wizards)
-    #print(max_constraints)
+    max_constraints = calc_max_constraints(len(wizards))
     count = 0
 
     for i in range(num_constraints):
-
         while True:
             if len(constraints) == max_constraints:
-                return list(constraints)
-
-            constraint = generate_constraint(wizards, num_constraints, num_wizards)
-
+                return constraints
+            constraint = generate_constraint(wizards, num_constraints)
             if constraint not in constraints:
                 #print(constraint)
                 constraints.add(constraint)
@@ -42,23 +35,18 @@ def generate_constraints(wizards, num_constraints, num_wizards):
 
     return list(constraints)
 
-def generate_interleaved_constraints(wizards, num_constraints, num_wizards):
+def generate_interleaved_constraints(wizards, num_constraints):
     # abc, cde, edf, fgh 
     constraints = []
     print(len(wizards))
     for i in range(0, 2 * num_constraints, 2):
-        print(i)
-        print(i + 1 % len(wizards))
         constraint = [wizards[(i - 1) % len(wizards)], wizards[i % len(wizards)], wizards[(i + 1) % len(wizards)]]
         constraints.append(constraint)
-
-    print(constraints)
     return constraints
 
-def generate_chain_constraints(wizards, num_constraints, num_wizards):
+def generate_chain_constraints(wizards, num_constraints):
     # wizards: list of wizard names
     # num_constraints: ignored value
-    # num_wizards: ignored value, deduced from len(wizards)
     # RETURNS: constraints of the form abc, def, ghi, adg
     constraints = []
     triplet_count = int(math.ceil(len(wizards) / 3.0))
@@ -74,23 +62,20 @@ def generate_chain_constraints(wizards, num_constraints, num_wizards):
         chain_start += 9
     print("Created a total of {} constraints.".format(len(constraints)))
 
-    other_constraints = generate_constraints(wizards, num_constraints - len(constraints), num_wizards)
+    other_constraints = generate_constraints(wizards, num_constraints - len(constraints))
     return constraints + other_constraints
 
 def calc_max_constraints(num_wizards):
     n = num_wizards 
     return (2 * (n - 2) + 3 * pow(n - 2, 2) + pow(n - 2, 3)) / 3
 
-def generate_constraint(wizards, num_constraints, num_wizards):
-    endpoints = random.sample(range(num_wizards), 2)
+def generate_constraint(wizards, num_constraints):
+    endpoints = random.sample(range(len(wizards)), 2)
     upper = max(endpoints)
     lower = min(endpoints)
-
-    outside_interval = list(range(0, lower)) + list(range(upper + 1, num_wizards))
-    
+    outside_interval = list(range(0, lower)) + list(range(upper + 1, len(wizards)))
     if outside_interval == []:
-        return generate_constraint(wizards, num_constraints, num_wizards)
-    
+        return generate_constraint(wizards, num_constraints)
     non_middle = random.sample(outside_interval, 1)[0]
     return (wizards[lower], wizards[upper], wizards[non_middle])
 
