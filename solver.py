@@ -4,18 +4,13 @@ import random
 import pycosat
 import randomized3SAT
 
+DEBUG = False
+
 """
 ======================================================================
   Complete the following function.
 ======================================================================
 """
-
-# The current problem is that the SAT solver sucks, it returns conflicting requirements ->
-# massive.in
-# eli < c < an < eli
-# 24 < 18 < 14 < 24
-# the problem is that this is 3SAT not 2SAT, so we have to encode that there can't be loops in ordering
-# ab + bc => ¬ ca
 
 class Wiz(object):
     # Wizard Manager
@@ -24,7 +19,7 @@ class Wiz(object):
     def __init__(self, wizards):
         self.list = wizards
         self.wizard_encoder, self.wizard_decoder = self.create_encoder_decoder(wizards)
-        self.encoded_list = self.encode_wizards(wizards)
+        self.encoded_list = self.encode_multiple(wizards)
 
     def create_encoder_decoder(self, wizards):
         # The encoder starts at 10
@@ -37,17 +32,17 @@ class Wiz(object):
             decoder[encoding_index] = ith_wizard
         return encoder, decoder
 
-    def encode_wizards(self, wizard_list):
-        return [self.encode_wizard(w) for w in wizard_list]
-
-    def decode_wizards(self, wizard_list):
-        return [self.decode_wizard(w) for w in wizard_list]
-
-    def encode_wizard(self, name):
+    def encode(self, name):
         return self.wizard_encoder[name]
 
-    def decode_wizard(self, number):
+    def decode(self, number):
         return self.wizard_decoder[number]
+
+    def encode_multiple(self, wizard_list):
+        return [self.encode(w) for w in wizard_list]
+
+    def decode_multiple(self, wizard_list):
+        return [self.decode(w) for w in wizard_list]
 
 
 class Constraints(object):
@@ -61,22 +56,15 @@ class Constraints(object):
     def __init__(self, constraint, wiz):
         self.wiz = wiz
         self.list = constraint
-        self.encoded = wiz.encode_wizards(constraint)
+        self.encoded = wiz.encode_multiple(constraint)
 
     def get_all_sat_constraints(wiz, constraints, sat2=False):
         constraints_2_terms = []
 
         for constraint in constraints:
-            if constraint == []:
-                return
-
+            if constraint == []: return
             double_constraint = Constraint(constraint, wiz).convert()
-            c = double_constraint[0]
-            r = double_constraint[1]
-            if c not in constraints_2_terms:
-                constraints_2_terms.append(c)  # make into a set
-            if r not in constraints_2_terms:
-                constraints_2_terms.append(r)
+            constraints_2_terms.extend(double_constraint) # prevent duplicates
 
         if sat2:
             return constraints_2_terms
@@ -84,17 +72,12 @@ class Constraints(object):
         return constraints_2_terms + Constraints.generate_3_term_constraints(wiz)
 
     def generate_3_term_constraints(wiz):
-        # possible combinations:
-        # 12 + 13 + 23
-        # 12 + 13 + ¬23
-        # 12 + ¬13 + ¬23
-        # ¬12 + 13 + 23
-        # ¬12 + ¬13 + 23
-        # ¬12 + ¬13 + ¬23
+        # Possible combinations:
+        # 12 + 13 + 23  |  12 + 13 + ¬23  |  12 + ¬13 + ¬23 
+        # ¬12 + 13 + 23  |  ¬12 + ¬13 + 23  |  ¬12 + ¬13 + ¬23
 
-        # NOT ALLOWED
-        # 12 + ¬13 + 23
-        # ¬12 + 13 + ¬23
+        # Invalid combinations
+        # 12 + ¬13 + 23  |  ¬12 + 13 + ¬23
         wizards = wiz.encoded_list
         constraints = []
 
@@ -117,7 +100,7 @@ class Constraint(object):
     def __init__(self, constraint, wiz):
         self.wiz = wiz
         self.list = constraint
-        self.encoded = wiz.encode_wizards(constraint)
+        self.encoded = wiz.encode_multiple(constraint)
     
     def convert(self):
         """
@@ -163,7 +146,10 @@ class Variables(object):
     def __init__(self, sat_solution, wiz):
         self.wiz = wiz
         self.list = self.populate(sat_solution)
-        self.num_list = self.populate_num_list()
+
+    def __iter__(self):
+        for var in self.list:
+            yield var.num
 
     def populate(self, sat_solution):
         """
@@ -176,9 +162,6 @@ class Variables(object):
                 if var.first_half < var.second_half and var.first_half in self.wiz.wizard_decoder and var.second_half in self.wiz.wizard_decoder:
                     variable_list.append(var)
         return variable_list
-
-    def populate_num_list(self):
-        return [var.num for var in self.list]
 
     def involving_enc(self, x):
         # Returns a list of all variables involving a
@@ -197,9 +180,9 @@ class Variables(object):
         else:
             code = int(str(y) + str(x))
 
-        if code in self.num_list:
+        if code in self:
             return code
-        elif -code in self.num_list:
+        elif -code in self:
             return -code
         else:
             return None
@@ -211,18 +194,18 @@ class Variables(object):
         if str(v[0]) == '-':
             s = " larger "
 
-        first = self.wiz.decode_wizard(result.first_half)
-        second = self.wiz.decode_wizard(result.second_half)
+        first = self.wiz.decode(result.first_half)
+        second = self.wiz.decode(result.second_half)
         #print(first + " is" + s + "than " + second)
         return [first, s, second]
 
     def smaller_than_enc(self, a, b):
         # i.e. "before"
         if a < b:
-            if int(str(a) + str(b)) in self.num_list:
+            if int(str(a) + str(b)) in self:
                 return True
         else:
-            if -int(str(b) + str(a)) in self.num_list:
+            if -int(str(b) + str(a)) in self:
                 return True
         return False
 
@@ -230,8 +213,8 @@ class Variables(object):
         return not self.smaller_than_enc(a, b)
 
     def smaller_than_name(self, name_1, name_2):
-        a = self.wiz.encode_wizard(name_1)
-        b = self.wiz.encode_wizard(name_2)
+        a = self.wiz.encode(name_1)
+        b = self.wiz.encode(name_2)
         return self.smaller_than_enc(a, b)
 
     def larger_than_name(self, name_1, name_2):
@@ -242,13 +225,9 @@ class Variable(object):
         self.num = num
         self.first_half, self.second_half = self.decompose()
 
-    @property
-    def is_true(self):
-        return self.num
-
-    @property
-    def is_false(self):
-        return self.num < 0
+    def __bool__(self):
+        return self.num > 0
+    __nonzero__=__bool__
 
     def clean(number):
         if str(number)[0] == '-':
@@ -281,20 +260,20 @@ class OrderWizards(object):
 
                 if self.var.larger_than_enc(wizard, ith_solution_wizard):
                     if DEBUG:
-                        print(self.wiz.decode_wizard(wizard) + " is larger than " +
-                            self.wiz.decode_wizard(ith_solution_wizard) + " at index " + str(i))
+                        print(self.wiz.decode(wizard) + " is larger than " +
+                            self.wiz.decode(ith_solution_wizard) + " at index " + str(i))
                     target_index = i + 1
 
             if DEBUG:
-                print("Inserting " + self.wiz.decode_wizard(wizard) +
+                print("Inserting " + self.wiz.decode(wizard) +
                  " at index " + str(target_index))
 
             solution.insert(target_index, wizard)
 
             if DEBUG:
-                print(self.wiz.decode_wizards(solution))
+                print(self.wiz.decode_multiple(solution))
 
-            if check_for_non_valid_constraint(self.wiz.decode_wizards(solution), constraints) is not None:
+            if check_for_non_valid_constraint(self.wiz.decode_multiple(solution), constraints) is not None:
                 pass
 
         return solution
@@ -324,7 +303,7 @@ def solve(num_wizards, num_constraints, wizards, constraints, sat2=False):
     var2 = Variables(sat_solution2, wiz)
     search = OrderWizards(var, wiz)
     search2 = OrderWizards(var2, wiz)
-    result = wiz.decode_wizards(search2.naive_search(constraints))
+    result = wiz.decode_multiple(search2.naive_search(constraints))
     if DEBUG:
         print(result)
     errors = check_for_non_valid_constraint(result, constraints)
@@ -373,7 +352,7 @@ def check_for_non_valid_constraint(ordering, constraints):
 def read_input(filename):
     with open(filename) as f:
         num_wizards = int(f.readline())
-        SOL = f.readline().split()
+        solution = f.readline().split()
         num_constraints = int(f.readline())
         constraints = []
         wizards = set()
@@ -384,7 +363,7 @@ def read_input(filename):
                 wizards.add(w)
 
     wizards = list(wizards)
-    return num_wizards, num_constraints, wizards, constraints, SOL
+    return num_wizards, num_constraints, wizards, constraints
 
 
 def write_output(filename, solution):
@@ -400,11 +379,9 @@ if __name__ == "__main__":
     parser.add_argument("debug", type=str, help="debug")
     args = parser.parse_args()
 
-    DEBUG = False
-    if args.debug:
+    if args.debug == "-d":
         DEBUG = True
 
-    num_wizards, num_constraints, wizards, constraints, SOL = read_input(
-        args.input_file)
+    num_wizards, num_constraints, wizards, constraints = read_input(args.input_file)
     solution = solve(num_wizards, num_constraints, wizards, constraints)
     write_output(args.output_file, solution)
