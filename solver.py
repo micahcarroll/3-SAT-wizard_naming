@@ -307,10 +307,10 @@ def solve(num_wizards, num_constraints, wizards, constraints, sat2=False):
     if DEBUG:
         print(result)
     errors = check_for_non_valid_constraint(result, constraints)
-    if errors is None:
+    if errors is None and DEBUG:
         print("CHECK PASSED!")
     if errors:
-        print("WTF BRO U GOT AN ERROR")
+        print("An error was found")
 
     return result, errors
 
@@ -337,8 +337,8 @@ def check_for_non_valid_constraint(ordering, constraints):
             errors.append((wiz_a, wiz_b, wiz_mid))
             count += 1
 
-    if errors:
-        print(str(count) + " ERRORS found!")
+    if errors and DEBUG:
+        print(str(count) + " Errors found!")
         return errors
     else:
         return None
