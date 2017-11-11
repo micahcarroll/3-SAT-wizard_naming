@@ -39,7 +39,7 @@ def generate_constraints(wizards, num_constraints, num_wizards):
 
     return constraints
 
-def generate_smart_constraints(wizards, num_constraints, num_wizards):
+def generate_interleaved_constraints(wizards, num_constraints, num_wizards):
     # abc, cde, edf, fgh 
     random.shuffle(wizards)
     constraints = []
@@ -51,6 +51,8 @@ def generate_smart_constraints(wizards, num_constraints, num_wizards):
         constraints.append(constraint)
 
     return constraints
+
+
 
 def calc_max_constraints(num_wizards):
     n = num_wizards 
