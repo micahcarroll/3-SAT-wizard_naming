@@ -312,7 +312,7 @@ def solve(num_wizards, num_constraints, wizards, constraints, sat2=False):
     if errors:
         print("An error was found")
 
-    return result, errors
+    return result
 
 
 def check_for_non_valid_constraint(ordering, constraints):
@@ -352,7 +352,6 @@ def check_for_non_valid_constraint(ordering, constraints):
 def read_input(filename):
     with open(filename) as f:
         num_wizards = int(f.readline())
-        solution = f.readline().split()
         num_constraints = int(f.readline())
         constraints = []
         wizards = set()
