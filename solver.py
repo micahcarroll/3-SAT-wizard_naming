@@ -1,16 +1,17 @@
 # This Python file uses the following encoding: utf-8
 import argparse
+import itertools
 import random
+
+import numpy as np
 import pycosat
 import randomized3SAT
-from itertools import combinations
-import numpy as np
 
-DEBUG = True
+DEBUG = False
 
 """
 ======================================================================
-  Complete the following function.
+  The solver algorithm is implemented below this line.
 ======================================================================
 """
 
@@ -79,7 +80,7 @@ def check_for_non_valid_constraint(ordering, constraints):
     else:
         return None
 
-def solve(num_wizards, num_constraints, wizards, constraints, sat2=False):
+def solve(num_wizards, num_constraints, wizards, constraints):
     """
     Write your algorithm here.
     Input:
@@ -92,6 +93,9 @@ def solve(num_wizards, num_constraints, wizards, constraints, sat2=False):
     Output:
         An array of wizard names in the ordering your algorithm returns
     """
+    if DEBUG:
+        print("Input with {} wizards and {} constraints.".format(num_wizards, num_constraints))
+
     random.shuffle(wizards)
 
     variables = Variables()
@@ -123,7 +127,7 @@ def solve(num_wizards, num_constraints, wizards, constraints, sat2=False):
 class Variables(object):
 
     def __init__(self):
-        wizard_combinations = list((combinations(wizards, 2))) # do we even have to create them all at the beginning?
+        wizard_combinations = list((itertools.combinations(wizards, 2))) # do we even have to create them all at the beginning?
         self.variables = [Variable(wiz1, wiz2) for wiz1, wiz2 in wizard_combinations]
         self.variables_set = {var.combination: var for var in self.variables} # to be able to access specific variables fast
         self.encoder, self.decoder = self.generate_encoding()
@@ -152,7 +156,7 @@ class Variables(object):
 
 class Variable(object):
     def __init__(self, name1, name2, state=0):
-        # equvalent to creating a variable 'name 1 is before name 2'
+        # equivalent to creating a variable 'name 1 is before name 2'
         self.combination = tuple(sorted([name1, name2]))
         self.before = self.combination[0]
         self.after = self.combination[1]
@@ -243,7 +247,8 @@ class SAT3(object):
         return pycosat_instance
         
     def set_variables_from_pycosat(self, pycosat_solution, decoder):
-        print(pycosat_solution)
+        if DEBUG:
+            print(pycosat_solution)
         for var in pycosat_solution:
             if var < 0:
                 decoder[-var].state=0
@@ -252,7 +257,7 @@ class SAT3(object):
 
 """
 ======================================================================
-   No need to change any code below this line
+   Input parsing happens below this line.
 ======================================================================
 """
 
@@ -267,25 +272,32 @@ def read_input(filename):
             constraints.append(c)
             for w in c:
                 wizards.add(w)
-
     wizards = list(wizards)
     return num_wizards, num_constraints, wizards, constraints
-
 
 def write_output(filename, solution):
     with open(filename, "w") as f:
         for wizard in solution:
             f.write("{0} ".format(wizard))
 
-
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Constraint Solver.")
-    parser.add_argument("input_file", type=str, help="___.in")
-    parser.add_argument("output_file", type=str, help="___.out")
-    parser.add_argument("debug", type=str, help="debug")
+    parser = argparse.ArgumentParser(description = "Constraint Solver.")
+    parser.add_argument(
+        "input_file",
+        type=str,
+        help = "provide a file of the form ___.in")
+    parser.add_argument(
+        "output_file",
+        type=str,
+        help = "provide a file of the form ___.out")
+    parser.add_argument(
+        "--debug", "-d",
+        dest="debug",
+        action="store_true",
+        help="print out verbose debug messages")
     args = parser.parse_args()
 
-    if args.debug == "-d":
+    if args.debug:
         DEBUG = True
 
     num_wizards, num_constraints, wizards, constraints = read_input(args.input_file)
