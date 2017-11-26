@@ -11,7 +11,7 @@ class LocalSearch(SAT3):
             self.switch_one()
         
     def switch_one(self):
-        for clause in self.clauses:
+        for clause in self.clauses: 
             if not clause.satisfied:
                 best_change = 0
                 best_variable = None
