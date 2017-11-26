@@ -1,3 +1,5 @@
+import os
+import re
 import time
 import random
 import pycosat
@@ -193,16 +195,27 @@ def write_output(filename, solution):
         for wizard in solution:
             f.write("{0} ".format(wizard))
 
+def atoi(text):
+    return int(text) if text.isdigit() else text
+
+def natural_keys(text):
+    '''
+    alist.sort(key=natural_keys) sorts in human order
+    http://nedbatchelder.com/blog/200712/human_sorting.html
+    (See Toothy's implementation in the comments)
+    '''
+    return [atoi(c) for c in re.split('(\d+)', text)]
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description = "Constraint Solver.")
     parser.add_argument(
-        "input_file",
+        "input",
         type=str,
-        help = "provide a file of the form ___.in")
+        help = "provide a file/folder where inputs should be read from")
     parser.add_argument(
-        "output_file",
+        "output",
         type=str,
-        help = "provide a file of the form ___.out")
+        help = "provide a file/folder where outputs should be saved")
     parser.add_argument(
         "--debug", "-d",
         dest="debug",
@@ -212,12 +225,23 @@ if __name__ == "__main__":
 
     if args.debug:
         DEBUG = True
-
-    num_wizards, num_constraints, wizards, constraints = read_input(args.input_file)
-    solution = solve(num_wizards, num_constraints, wizards, constraints)
-    write_output(args.output_file, solution)
-    constraints_satisfied, num_constraints, constraints_failed = output_validator.processInput(args.input_file, args.output_file)
-    if constraints_satisfied == num_constraints:
-        print("Solution verified!")
-    else:
-        print("Solution did not satisfy {}/{} constraints:\n{}".format(len(constraints_failed), num_constraints, constraints_failed))
+    
+    inputs = [args.input]
+    if os.path.isdir(args.input):
+        inputs = [os.path.join(args.input, f) for f in os.listdir(args.input) if os.path.isfile(os.path.join(args.input, f)) and f.endswith(".in")]
+        inputs.sort(key=natural_keys)
+    
+    for input_file in inputs:
+        if not os.path.isdir(args.output):
+            output_file = args.output
+        else:
+            output_file = os.path.join(args.output, os.path.split(input_file)[1].replace(".in", ".out"))
+        print("Solving file: {}".format(input_file))
+        num_wizards, num_constraints, wizards, constraints = read_input(input_file)
+        solution = solve(num_wizards, num_constraints, wizards, constraints)
+        write_output(output_file, solution)
+        constraints_satisfied, num_constraints, constraints_failed = output_validator.processInput(input_file, output_file)
+        if constraints_satisfied == num_constraints:
+            print("Solution file {} verified!".format(output_file))
+        else:
+            print("Solution file {} did not satisfy {}/{} constraints:\n{}".format(output_file, len(constraints_failed), num_constraints, constraints_failed))
