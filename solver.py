@@ -1,84 +1,85 @@
-# This Python file uses the following encoding: utf-8
+import time
+import random
+import pycosat
 import argparse
 import itertools
-import random
-
-import numpy as np
-import pycosat
-import randomized3SAT
+import output_validator
 
 DEBUG = False
 
-"""
-======================================================================
-  The solver algorithm is implemented below this line.
-======================================================================
-"""
-
-def generate_3_term_clauses(wizards):
-    # Possible combinations: 12 + 13 + 23  |  12 + 13 + ¬23  |  12 + ¬13 + ¬23 | ¬12 + 13 + 23  |  ¬12 + ¬13 + 23  |  ¬12 + ¬13 + ¬23
-    # Invalid combinations: 12 + ¬13 + 23  |  ¬12 + 13 + ¬23
-    # This logic could be made nicer
-    clauses_with_3_terms = []
-    for i in wizards:
-        for j in wizards:
-            for k in wizards:
-                if  i < j < k:
-                    variables = [Variable(i, j), Variable(i, k), Variable(j, k)]
-                    truth_values = np.array([False, True, False])
-                    clauses_with_3_terms += [Clause(variables, truth_values), Clause(variables, ~truth_values)]
+class Variable:
+    def __init__(self, wizard1, wizard2):
+        self.wizard1 = min(wizard1, wizard2)
+        self.wizard2 = max(wizard1, wizard2)
     
-    return clauses_with_3_terms
+    def __eq__(self, other):
+        return self.wizard1 == other.wizard1 and self.wizard2 == other.wizard2
 
-def naive_order_wizards(variables, wizards):
-    # Searches for ordering of wizards that satisfies the Variables and their states
-    solution = []
-    for wizard in wizards:
-        target_index = 0
-        for i in range(len(solution)):
-            ith_solution_wizard = solution[i]
-            
-            if variables.should_be_before(ith_solution_wizard, wizard):
-                if DEBUG:
-                    print(wizard + " is larger than " + ith_solution_wizard + " at index " + str(i))
-                target_index = i + 1
+    def __hash__(self):
+        return hash(self.wizard1 + self.wizard2)
+    
+    def __repr__(self):
+        return "Variable: {} BEFORE {}".format(self.wizard1, self.wizard2)
 
-        if DEBUG:
-            print("Inserting " + wizard + " at index " + str(target_index))
-        solution.insert(target_index, wizard)
-        if DEBUG:
-            print(solution)
-        # if check_for_non_valid_constraint(solution, constraints) is not None:
-        #     pass
-    return solution
+class VariableList:
+    def __init__(self, wizards):
+        combinations = list((itertools.combinations(wizards, 2)))
+        variables = [Variable(wizard1, wizard2) for wizard1, wizard2 in combinations]
+        self.encoder = {}
+        for i in range(len(variables)):
+            self.encoder[variables[i]] = i + 1
+        
+    def encode_variable(self, variable):
+        return self.encoder[variable]
+    
+    def __len__(self):
+        return len(self.encoder)
 
-def check_for_non_valid_constraint(ordering, constraints):
-    node_map = {k: v for v, k in enumerate(ordering)}
-    errors = []
-    count = 0
+    def __repr__(self):
+        result = "Variable List <size: {}>".format(len(self.encoder))
+        for variable in self.encoder:
+            result += "\n{} -> {}".format(self.encoder[variable], str(variable))
+        return result
 
-    for constraint in constraints:
-        a = constraint[0]
-        b = constraint[1]
-        m = constraint[2]
-        if not (a in node_map and b in node_map and m in node_map):
-            continue
+class Literal:
+    def __init__(self, variable, value):
+        self.variable = variable
+        self.value = value
+    
+    def to_pycosat(self, variable_list):
+        multiplier = 1 if self.value else -1
+        return variable_list.encode_variable(self.variable) * multiplier
+    
+    def __repr__(self):
+        assigned = "TRUE" if self.value else "FALSE"
+        return "Literal: <{}> set to {}".format(str(self.variable), assigned)
 
-        wiz_a = node_map[a]
-        wiz_b = node_map[b]
-        wiz_mid = node_map[m]
+class Constraint:
+    def __init__(self, triplet):
+        assert(len(triplet) == 3)
+        self.bound1 = triplet[0]
+        self.bound2 = triplet[1]
+        self.middle = triplet[2]
+    
+    # For each constraint "middle not between bound1 and bound2"
+    # return a caluse of the form:
+    # (bound1 < middle OR bound2 > middle) AND (bound2 < middle OR bound1 > middle).
+    def to_clause(self, variable_list):
+        a1 = Literal(Variable(self.bound1, self.middle), self.bound1 < self.middle)
+        a2 = Literal(Variable(self.bound2, self.middle), self.bound2 > self.middle)
+        b1 = Literal(Variable(self.bound2, self.middle), self.bound2 < self.middle)
+        b2 = Literal(Variable(self.bound1, self.middle), self.bound1 > self.middle)
+        return [Clause([a1, a2]), Clause([b1, b2])]
 
-        if (wiz_a < wiz_mid < wiz_b) or (wiz_b < wiz_mid < wiz_a):
-            #print("{} was found between {} and {}".format(
-            #    constraint[2], constraint[0], constraint[1]))
-            errors.append((wiz_a, wiz_b, wiz_mid))
-            count += 1
+class Clause(object):
+    def __init__(self, literals):
+        self.literals = literals
+    
+    def to_pycosat(self, variable_list):
+        return [literal.to_pycosat(variable_list) for literal in self.literals]
 
-    if errors and DEBUG:
-        print(str(count) + " Errors found!")
-        return errors
-    else:
-        return None
+    def __repr__(self):
+        return "Clause:" + " OR ".join([str(literal) for literal in self.literals])
 
 def solve(num_wizards, num_constraints, wizards, constraints):
     """
@@ -93,167 +94,79 @@ def solve(num_wizards, num_constraints, wizards, constraints):
     Output:
         An array of wizard names in the ordering your algorithm returns
     """
+    # Pre-processing.
+    processing_start = time.time()
     if DEBUG:
-        print("Input with {} wizards and {} constraints.".format(num_wizards, num_constraints))
-
+        print("Input with {} wizards and {} constraints.".format(len(wizards), len(constraints)))
     random.shuffle(wizards)
+    wizards.sort() # TODO: delete this
 
-    variables = Variables()
+    # Generate all possible variables of 2 wizards each.
+    variables = VariableList(wizards)
+    assert(len(variables) == len(wizards) * (len(wizards) - 1) / 2)
+    if DEBUG:
+        print(variables)
 
-    constraint_clauses = [clause for constraint in constraints for clause in Constraint(constraint).get_clauses()]
-    clauses_with_3_terms = generate_3_term_clauses(wizards)
+    # Convert constraints to SAT clauses.
+    clauses = []
+    for triplet in constraints:
+        constraint = Constraint(triplet)
+        clause_pair = constraint.to_clause(variables)
+        clauses.extend(clause_pair)
+    assert(len(clauses) == len(constraints) * 2)
 
-    sat3 = SAT3(constraint_clauses + clauses_with_3_terms)
+    # Add 3-Term clauses to prevent loops.
+    sorted_wizards = sorted(wizards)
+    for i in range(len(sorted_wizards)):
+        for j in range(i + 1, len(sorted_wizards)):
+            for k in range(j + 1, len(sorted_wizards)):
+                w1, w2, w3 = sorted_wizards[i], sorted_wizards[j], sorted_wizards[k]
+                a1 = Literal(Variable(w1, w2), False)
+                a2 = Literal(Variable(w1, w3), True)
+                a3 = Literal(Variable(w2, w3), False)
+                clauses.append(Clause([a1, a2, a3]))
+                b1 = Literal(Variable(w1, w2), True)
+                b2 = Literal(Variable(w1, w3), False)
+                b3 = Literal(Variable(w2, w3), True)
+                clauses.append(Clause([b1, b2, b3]))
+    assert(len(clauses) == len(constraints) * 2 + len(list(itertools.combinations(range(len(wizards)), 3))) * 2)
+    if DEBUG:
+        print("Clauses (first 100):\n", clauses[:100])
 
-    sat3.solve_with_pycosat(variables)
+    # Solve using pycosat.
+    pycosat_input = [clause.to_pycosat(variables) for clause in clauses]
+    algorithm_start = time.time()
+    print("Calling Pycosat to solve the problem.")
+    pycosat_output = pycosat.solve(pycosat_input)
+    print("Pycosat returned an assignment.")
+    algorithm_duration = round(time.time() - algorithm_start, 2)
 
-    result = naive_order_wizards(variables, wizards)
+    # Decode pycosat solution.
+    assignments = {}
+    for assignment in pycosat_output:
+        assignments[abs(assignment)] = True if assignment >= 0 else False
+    if DEBUG:
+        print("Pycosat Assignments:\n", pycosat_output)
 
-    # var = Variables(sat_solution, wiz)
-    # var2 = Variables(sat_solution2, wiz)
-    # search = OrderWizards(var, wiz)
-    # search2 = OrderWizards(var2, wiz)
-    # result = wiz.decode_multiple(search2.naive_search(constraints))
-    # if DEBUG:
-    #     print(result)
-    errors = check_for_non_valid_constraint(result, constraints)
-    if errors is None and DEBUG:
-        print("CHECK PASSED!")
-    if errors:
-        print("An error was found")
-
-    return result
-
-class Variables(object):
-
-    def __init__(self):
-        wizard_combinations = list((itertools.combinations(wizards, 2))) # do we even have to create them all at the beginning?
-        self.variables = [Variable(wiz1, wiz2) for wiz1, wiz2 in wizard_combinations]
-        self.variables_set = {var.combination: var for var in self.variables} # to be able to access specific variables fast
-        self.encoder, self.decoder = self.generate_encoding()
-
-    def generate_encoding(self):
-        encoder = {}
-        decoder = {}
-        for i in range(len(self.variables)):
-            # Each encoded combination will be in sorted order
-            # Encoding starts at 1 to prevent problems with pycosat
-            encoder[self.variables[i]] = i + 1
-            decoder[i + 1] = self.variables[i]
-        return encoder, decoder
-
-    def should_be_before(self, wizard1, wizard2):
-        combination = tuple(sorted([wizard1, wizard2]))
-        target_variable = self.variables_set[combination]
-
-        if target_variable.before == wizard1 and target_variable.state:
-            return True
-        elif target_variable.before == wizard2 and not target_variable.state:
-            return True
-        else:
-            return False
-        
-
-class Variable(object):
-    def __init__(self, name1, name2, state=0):
-        # equivalent to creating a variable 'name 1 is before name 2'
-        self.combination = tuple(sorted([name1, name2]))
-        self.before = self.combination[0]
-        self.after = self.combination[1]
-        self.state = state
+    # Find a valid ordering of wizards.
+    solution = []
+    for wizard in wizards:
+        target_index = 0
+        for i in range(len(solution)):
+            variable = Variable(solution[i], wizard)
+            value = assignments[variables.encode_variable(variable)]
+            if variable.wizard1 != solution[i]:
+                value = not value
+            if value:
+                target_index = i + 1
+        solution.insert(target_index, wizard)
+    if DEBUG:
+        print("Solution:", solution)
     
-    def __hash__(self):
-        return hash(self.combination)
-
-    def __eq__(self, other):
-        if type(other) == type(self):
-            return (self.combination) == (other.combination)
-        elif type(other) == bool:
-            return bool(self) == other
-        else:
-            return super() == other
-
-    def __ne__(self, other):
-        return not(self == other)
-
-    def __nonzero__(self):#missleading
-        return self.state
-
-    def __repr__(self):
-        return "{} is before {}".format(self.before, self.after)
-
-    def switch(self):
-        self.state = 1 - self.state
-
-    def encode(self, encoder):
-        return encoder[self]
-
-class Constraint(object):
-    def __init__(self, constraint):
-        self.middle_wizard = constraint[-1]
-        self.side_wizards = constraint[:2]
-
-    def get_clauses(self):
-        """
-        For each constraint "m not btw a and b" return a constraint
-        of the form (a < m or b > m) and (b < m or a > m).
-        """
-        a = self.side_wizards[0]
-        b = self.side_wizards[1]
-        m = self.middle_wizard
-
-        # Simplify by noting that each 2 clauses created this way are opposite
-        left_sides = np.array([a, m, b, m])
-        right_sides = np.array([m, b, m, a])
-        truth_values = left_sides < right_sides
-
-        variables = [Variable(wiz1, wiz2) for wiz1, wiz2 in zip(left_sides, right_sides)]
-
-        return Clause(variables[:2], truth_values[:2]), Clause(variables[2:], truth_values[2:])
-
-class Clause(object):
-    def __init__(self, variables, truth_values):
-        self.variables = variables
-        self.truth_values = truth_values
-
-    def __repr__(self):
-        return " OR ".join(
-            [str(tupl) for tupl in zip(self.truth_values, [repr(var) for var in self.variables])]
-        )
-
-    def satisfied(self):
-        return any(np.array(self.variables) == np.array(self.truth_values))
-
-class SAT3(object):
-    def __init__(self, clauses):
-        self.clauses = clauses
-    
-    def solve_with_pycosat(self, variables):
-        pycosat_clauses = self.convert_to_pycosat(variables.encoder)
-        pycosat_solution = pycosat.solve(pycosat_clauses)
-        self.set_variables_from_pycosat(pycosat_solution, variables.decoder)
-
-    def convert_to_pycosat(self, encoder):
-        pycosat_instance = []
-        for clause in self.clauses:
-            pycosat_clause = []
-            for item in zip(clause.variables, clause.truth_values):
-                truth_value = item[1]
-                encoded_variable = encoder[item[0]]
-                if not truth_value:
-                    encoded_variable *= -1
-                pycosat_clause.append(encoded_variable)
-            pycosat_instance.append(pycosat_clause)
-        return pycosat_instance
-        
-    def set_variables_from_pycosat(self, pycosat_solution, decoder):
-        if DEBUG:
-            print(pycosat_solution)
-        for var in pycosat_solution:
-            if var < 0:
-                decoder[-var].state=0
-            else:
-                decoder[var].state=1
+    # Completion info.
+    processing_duration = round(time.time() - processing_start, 2) - algorithm_duration
+    print("Solver complete. Algorithm took {} seconds. Processing took {} seconds.".format(algorithm_duration, processing_duration))
+    return solution
 
 """
 ======================================================================
@@ -303,3 +216,8 @@ if __name__ == "__main__":
     num_wizards, num_constraints, wizards, constraints = read_input(args.input_file)
     solution = solve(num_wizards, num_constraints, wizards, constraints)
     write_output(args.output_file, solution)
+    constraints_satisfied, num_constraints, constraints_failed = output_validator.processInput(args.input_file, args.output_file)
+    if constraints_satisfied == num_constraints:
+        print("Solution verified!")
+    else:
+        print("Solution did not satisfy {}/{} constraints:\n{}".format(len(constraints_failed), num_constraints, constraints_failed))
