@@ -235,7 +235,7 @@ if __name__ == "__main__":
         if not os.path.isdir(args.output):
             output_file = args.output
         else:
-            output_file = os.path.join(args.output, os.path.split(input_file)[1].replace(".in", ".out"))
+            output_file = os.path.join(args.output, os.path.split(input_file)[1].replace(".in", ".out").replace("input", "output"))
         print("Solving file: {}".format(input_file))
         num_wizards, num_constraints, wizards, constraints = read_input(input_file)
         solution = solve(num_wizards, num_constraints, wizards, constraints)
