@@ -160,9 +160,9 @@ def solve(num_wizards, num_constraints, wizards, constraints, data = None):
     return solution
 
 class WizardSolver(simanneal.Annealer):
-    Tmax = 80               # Max (starting) temperature (over-written below)
-    Tmin = 0.001            # Min (ending) temperature
-    steps = 10000000         # Number of iterations
+    Tmax = 80       # Max (starting) temperature (over-written below)
+    Tmin = 0.001        # Min (ending) temperature
+    steps = 50000   # Number of iterations
     updates = steps / 100   # Number of updates (by default an update prints to stdout)
 
     def __init__(self, wizards, constraints):
@@ -278,7 +278,6 @@ if __name__ == "__main__":
     if args.debug:
         DEBUG = True
 
-    start_state = None
     if args.start:
         with open(args.start, "r") as start_file:
             start_state = start_file.readline().split()
