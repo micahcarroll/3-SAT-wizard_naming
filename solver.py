@@ -85,7 +85,7 @@ class Clause(object):
     def __repr__(self):
         return "Clause:" + " OR ".join([str(literal) for literal in self.literals])
 
-def solve(num_wizards, num_constraints, wizards, constraints):
+def solve(num_wizards, num_constraints, wizards, constraints, data = None):
     # Pre-processing.
     processing_start = time.time()
     if DEBUG:
@@ -160,14 +160,14 @@ def solve(num_wizards, num_constraints, wizards, constraints):
     return solution
 
 class WizardSolver(simanneal.Annealer):
-    Tmax = 30       # Max (starting) temperature (over-written below)
-    Tmin = 1        # Min (ending) temperature
+    Tmax = 80       # Max (starting) temperature (over-written below)
+    Tmin = 0.001        # Min (ending) temperature
     steps = 50000   # Number of iterations
     updates = steps / 100   # Number of updates (by default an update prints to stdout)
 
     def __init__(self, wizards, constraints):
         self.constraints = constraints
-        self.Tmax = 1 + math.log(len(constraints))
+        self.Tmax = 10 + math.sqrt(len(constraints))
         super(WizardSolver, self).__init__(wizards) 
 
     def move(self):
@@ -189,7 +189,7 @@ class WizardSolver(simanneal.Annealer):
                 not_satisfied += 1
         return not_satisfied
 
-def anneal(num_wizards, num_constraints, wizards, constraints):
+def anneal(num_wizards, num_constraints, wizards, constraints, data = None):
     # Pre-processing.
     algorithm_start = time.time()
     if DEBUG:
@@ -197,7 +197,15 @@ def anneal(num_wizards, num_constraints, wizards, constraints):
     random.shuffle(wizards)
 
     # Start simulated annealing.
-    solver = WizardSolver(wizards, constraints)
+    start_state = data if data is not None else wizards
+    solver = WizardSolver(start_state, constraints)
+    print("Starting with ordering where {} constrains are violated.".format(solver.energy()))
+    if solver.energy() < 100:
+        solver.Tmax = 1
+    if solver.energy() < 25:
+        solver.Tmax = 0.5
+    if solver.energy() < 10:
+        solver.Tmax = 0.01
     solution, num_constraints_failed = solver.anneal()
     
     # Completion info.
@@ -257,6 +265,10 @@ if __name__ == "__main__":
         action="store_true",
         help="use simulated annealing instead of 3SAT")
     parser.add_argument(
+        "--start",
+        dest="start",
+        help="use the wizard ordering in this file as the starting state")
+    parser.add_argument(
         "--debug", "-d",
         dest="debug",
         action="store_true",
@@ -265,6 +277,10 @@ if __name__ == "__main__":
 
     if args.debug:
         DEBUG = True
+
+    if args.start:
+        with open(args.start, "r") as start_file:
+            start_state = start_file.readline().split()
     
     inputs = [args.input]
     if os.path.isdir(args.input):
@@ -286,7 +302,7 @@ if __name__ == "__main__":
         num_wizards, num_constraints, wizards, constraints = read_input(input_file)
         print("Solving file: {} ({} wizards, {} constraints)".format(input_file, num_wizards, num_constraints))
         f = anneal if args.anneal else solve
-        solution = f(num_wizards, num_constraints, wizards, constraints)
+        solution = f(num_wizards, num_constraints, wizards, constraints, start_state)
         write_output(output_file, solution)
         constraints_satisfied, num_constraints, constraints_failed = output_validator.processInput(input_file, output_file)
         if constraints_satisfied == num_constraints:
