@@ -1,7 +1,6 @@
 # This Python file uses the following encoding: utf-8
 import argparse
 import random
-import randomized3SAT
 from itertools import combinations, permutations
 import numpy as np
 import SAT3

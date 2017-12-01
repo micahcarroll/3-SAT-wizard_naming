@@ -1,10 +1,12 @@
 import os
 import re
 import time
+import math
 import random
 import pycosat
 import argparse
 import itertools
+import simanneal
 import output_validator
 
 DEBUG = False
@@ -84,24 +86,11 @@ class Clause(object):
         return "Clause:" + " OR ".join([str(literal) for literal in self.literals])
 
 def solve(num_wizards, num_constraints, wizards, constraints):
-    """
-    Write your algorithm here.
-    Input:
-        num_wizards: Number of wizards
-        num_constraints: Number of constraints
-        wizards: An array of wizard names, in no particular order
-        constraints: A 2D-array of constraints, 
-                     where constraints[0] may take the form ['A', 'B', 'C']
-
-    Output:
-        An array of wizard names in the ordering your algorithm returns
-    """
     # Pre-processing.
     processing_start = time.time()
     if DEBUG:
         print("Input with {} wizards and {} constraints.".format(len(wizards), len(constraints)))
     random.shuffle(wizards)
-    wizards.sort() # TODO: delete this
 
     # Generate all possible variables of 2 wizards each.
     variables = VariableList(wizards)
@@ -170,6 +159,52 @@ def solve(num_wizards, num_constraints, wizards, constraints):
     print("Solver complete. Algorithm took {} seconds. Processing took {} seconds.".format(algorithm_duration, processing_duration))
     return solution
 
+class WizardSolver(simanneal.Annealer):
+    Tmax = 30       # Max (starting) temperature (over-written below)
+    Tmin = 1        # Min (ending) temperature
+    steps = 50000   # Number of iterations
+    updates = steps / 100   # Number of updates (by default an update prints to stdout)
+
+    def __init__(self, wizards, constraints):
+        self.constraints = constraints
+        self.Tmax = 1 + math.log(len(constraints))
+        super(WizardSolver, self).__init__(wizards) 
+
+    def move(self):
+        a = random.randint(0, len(self.state) - 1)
+        b = random.randint(0, len(self.state) - 1)
+        self.state[a], self.state[b] = self.state[b], self.state[a]
+    
+    def energy(self):
+        output_ordering_set = set(self.state)
+        output_ordering_map = {k: v for v, k in enumerate(self.state)}
+        not_satisfied = 0
+        for constraint in self.constraints:
+            c = constraint # Creating an alias for easy reference
+            m = output_ordering_map # Creating an alias for easy reference
+            wiz_a = m[c[0]]
+            wiz_b = m[c[1]]
+            wiz_mid = m[c[2]]
+            if (wiz_a < wiz_mid < wiz_b) or (wiz_b < wiz_mid < wiz_a):
+                not_satisfied += 1
+        return not_satisfied
+
+def anneal(num_wizards, num_constraints, wizards, constraints):
+    # Pre-processing.
+    algorithm_start = time.time()
+    if DEBUG:
+        print("Input with {} wizards and {} constraints.".format(len(wizards), len(constraints)))
+    random.shuffle(wizards)
+
+    # Start simulated annealing.
+    solver = WizardSolver(wizards, constraints)
+    solution, num_constraints_failed = solver.anneal()
+    
+    # Completion info.
+    algorithm_duration = round(time.time() - algorithm_start, 2)
+    print("\nSolver complete. Algorithm took {} seconds.".format(algorithm_duration))
+    return solution
+
 """
 ======================================================================
    Input parsing happens below this line.
@@ -217,6 +252,11 @@ if __name__ == "__main__":
         type=str,
         help = "provide a file/folder where outputs should be saved")
     parser.add_argument(
+        "--anneal", "-a",
+        dest="anneal",
+        action="store_true",
+        help="use simulated annealing instead of 3SAT")
+    parser.add_argument(
         "--debug", "-d",
         dest="debug",
         action="store_true",
@@ -236,15 +276,20 @@ if __name__ == "__main__":
             output_file = args.output
         else:
             output_file = os.path.join(args.output, os.path.split(input_file)[1].replace(".in", ".out").replace("input", "output"))
-        if os.path.isfile(output_file) and len(output_validator.processInput(input_file, output_file)[2]) == 0:
-            print("File {} already has a valid solution in {}, skipping.".format(input_file, output_file))
-            continue
-        print("Solving file: {}".format(input_file))
+        if len(inputs) > 1 and os.path.isfile(output_file):
+            try:
+                if len(output_validator.processInput(input_file, output_file)[2]) == 0:
+                    print("File {} already has a valid solution in {}, skipping.".format(input_file, output_file))
+                    continue
+            except:
+                pass
         num_wizards, num_constraints, wizards, constraints = read_input(input_file)
-        solution = solve(num_wizards, num_constraints, wizards, constraints)
+        print("Solving file: {} ({} wizards, {} constraints)".format(input_file, num_wizards, num_constraints))
+        f = anneal if args.anneal else solve
+        solution = f(num_wizards, num_constraints, wizards, constraints)
         write_output(output_file, solution)
         constraints_satisfied, num_constraints, constraints_failed = output_validator.processInput(input_file, output_file)
         if constraints_satisfied == num_constraints:
             print("Solution file {} verified!".format(output_file))
         else:
-            print("Solution file {} did not satisfy {}/{} constraints:\n{}".format(output_file, len(constraints_failed), num_constraints, constraints_failed))
+            print("Solution file {} did not satisfy {}/{} constraints.".format(output_file, len(constraints_failed), num_constraints))
