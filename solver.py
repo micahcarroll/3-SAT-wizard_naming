@@ -236,6 +236,9 @@ if __name__ == "__main__":
             output_file = args.output
         else:
             output_file = os.path.join(args.output, os.path.split(input_file)[1].replace(".in", ".out").replace("input", "output"))
+        if os.path.isfile(output_file) and len(output_validator.processInput(input_file, output_file)[2]) == 0:
+            print("File {} already has a valid solution in {}, skipping.".format(input_file, output_file))
+            continue
         print("Solving file: {}".format(input_file))
         num_wizards, num_constraints, wizards, constraints = read_input(input_file)
         solution = solve(num_wizards, num_constraints, wizards, constraints)
