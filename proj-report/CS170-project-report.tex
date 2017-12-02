@@ -1,0 +1,640 @@
+%%%%%%%%%%%%%  DOCUMENT SETUP %%%%%%%%%%%%%%%%%   
+\documentclass{article}
+\renewcommand{\baselinestretch}{1.05}
+\usepackage{amsmath,amsthm,verbatim,amssymb,amsfonts,amscd, graphicx}
+\usepackage{graphics}
+\usepackage{fontspec}
+\usepackage{listings}
+\setmainfont{Calluna}
+\setmonofont[Scale=0.8]{Menlo}
+\lstset{basicstyle=\ttfamily,breaklines=true}
+\textheight23.0cm
+\textwidth16.5cm
+\footskip1.0cm
+
+%%%%%%%%%%%%%  THEOREMS  %%%%%%%%%%%%%%%%%
+\theoremstyle{plain}
+  \newtheorem{theorem}{Theorem}[section]
+  \newtheorem{conjecture}[theorem]{Conjecture}
+  \newtheorem{problem}[theorem]{Problem}
+  \newtheorem{assumption}[theorem]{Assumption}
+  \newtheorem{heuristic}[theorem]{Heuristic}
+  \newtheorem{proposition}[theorem]{Proposition}
+  \newtheorem{fact}[theorem]{Fact}
+  \newtheorem{lemma}[theorem]{Lemma}
+  \newtheorem{corollary}[theorem]{Corollary}
+  \newtheorem{claim}[theorem]{Claim}
+  \newtheorem{exercise}[theorem]{Exercise}
+  \numberwithin{theorem}{subsection}
+\theoremstyle{definition}
+  \newtheorem{definition}[theorem]{Definition}
+  \newtheorem{example}[theorem]{Example}
+  \newtheorem{remark}[theorem]{Remark}
+  \numberwithin{equation}{subsection}
+
+%%%%%%%%%%%%% SHORTCUTS %%%%%%%%%%%%%%%%%%%%
+\newcommand\g{{\mathbb{g}}}
+\newcommand\R{{\mathbb{R}}}
+\newcommand\C{{\mathbb{C}}}
+\newcommand\Z{{\mathbf{Z}}}
+\newcommand\D{{\mathbf{D}}}
+\newcommand\Q{{\mathbf{Q}}}
+\newcommand\G{{\mathbf{G}}}
+\newcommand\I{{\mathbf{I}}}
+\renewcommand\P{{\mathbf{P}}}
+\newcommand\E{{\mathbf{E}}}
+\newcommand\U{{\mathbf{U}}}
+\newcommand\A{{\mathbf{A}}}
+\newcommand\Var{\mathbf{Var}}
+\renewcommand\Im{{\operatorname{Im}}}
+\renewcommand\Re{{\operatorname{Re}}}
+\newcommand\eps{{\varepsilon}}
+\newcommand\trace{\operatorname{trace}}
+\newcommand\supp{\operatorname{supp}}
+\newcommand\tr{\operatorname{tr}}
+\newcommand\dist{\operatorname{dist}}
+\newcommand\Span{\operatorname{Span}}
+\newcommand\sgn{\operatorname{sgn}}
+\newcommand\dive{\operatorname{div}}
+% \renewcommand\a{x}
+% \renewcommand\b{y}
+
+% \newcommand\bm{{\mathbf{m}}}
+\newcommand\dd{\partial}
+\newcommand\smd{\hbox{smd}}
+\newcommand\Ba{{\mathbf a}}
+\newcommand\Bb{{\mathbf b}}
+\newcommand\Bc{{\mathbf c}}
+\newcommand\Bd{{\mathbf d}}
+\newcommand\Be{{\mathbf e}}
+\newcommand\Bf{{\mathbf f}}
+\newcommand\Bg{{\mathbf g}}
+\newcommand\Bh{{\mathbf h}}
+\newcommand\Bi{{\mathbf i}}
+\newcommand\Bj{{\mathbf j}}
+\newcommand\Bk{{\mathbf k}}
+\newcommand\Bl{{\mathbf l}}
+\newcommand\Bm{{\mathbf m}}
+\newcommand\Bn{{\mathbf n}}
+\newcommand\Bo{{\mathbf o}}
+\newcommand\Bp{{\mathbf p}}
+\newcommand\Bq{{\mathbf q}}
+\newcommand\Bs{{\mathbf s}}
+\newcommand\Bt{{\mathbf t}}
+\newcommand\Bu{{\mathbf u}}
+\newcommand\Bv{{\mathbf v}}
+\newcommand\Bw{{\mathbf w}}
+\newcommand\Bx{{\mathbf x}}
+\newcommand\By{{\mathbf y}}
+\newcommand\Bz{{\mathbf z}}
+\newcommand\p{{\mathbf p}}
+\newcommand\bi{{\mathbf i}}
+%
+
+\newcommand\BA{{\mathbf A}}
+\newcommand\BB{{\mathbf B}}
+\newcommand\BC{{\mathbf C}}
+\newcommand\BD{{\mathbf D}}
+\newcommand\BE{{\mathbf E}}
+\newcommand\BF{{\mathbf F}}
+\newcommand\BG{{\mathbf G}}
+\newcommand\BH{{\mathbf H}}
+\newcommand\BI{{\mathbf I}}
+\newcommand\BJ{{\mathbf J}}
+\newcommand\BK{{\mathbf K}}
+\newcommand\BL{{\mathbf L}}
+\newcommand\BM{{\mathbf M}}
+\newcommand\BN{{\mathbf N}}
+\newcommand\BO{{\mathbf O}}
+\newcommand\BP{{\mathbf P}}
+\newcommand\BQ{{\mathbf Q}}
+\newcommand\BS{{\mathbf S}}
+\newcommand\BT{{\mathbf T}}
+\newcommand\BU{{\mathbf U}}
+\newcommand\BV{{\mathbf V}}
+\newcommand\BW{{\mathbf W}}
+\newcommand\BX{{\mathbf X}}
+\newcommand\BY{{\mathbf Y}}
+\newcommand\BZ{{\mathbf Z}}
+\renewcommand\Pr{{\mathbf P }}
+
+%cal letter
+
+\newcommand\CA{{\mathcal A}}
+\newcommand\CB{{\mathcal B}}
+\newcommand\CC{{\mathcal C}}
+\renewcommand\CD{{\mathcal D}}
+\newcommand\CE{{\mathcal E}}
+\newcommand\CF{{\mathcal F}}
+\newcommand\CG{{\mathcal G}}
+\newcommand\CH{{\mathcal H}}
+\newcommand\CI{{\mathcal I}}
+\newcommand\CJ{{\mathcal J}}
+\newcommand\CK{{\mathcal K}}
+\newcommand\CL{{\mathcal L}}
+\newcommand\CM{{\mathcal M}}
+\newcommand\CN{{\mathcal N}}
+\newcommand\CO{{\mathcal O}}
+\newcommand\CP{{\mathcal P}}
+\newcommand\CQ{{\mathcal Q}}
+\newcommand\CS{{\mathcal S}}
+\newcommand\CT{{\mathcal T}}
+\newcommand\CU{{\mathcal U}}
+\newcommand\CV{{\mathcal V}}
+\newcommand\CW{{\mathcal W}}
+\newcommand\CX{{\mathcal X}}
+\newcommand\CY{{\mathcal Y}}
+\newcommand\CZ{{\mathcal Z}}
+
+%number theory
+\newcommand\condo{{\bf C0}}
+\newcommand\condone{{\bf C1}}
+\newcommand\N{{\mathbb N}}
+\newcommand\BBQ {{\mathbb Q}}
+\newcommand\BBI {{\mathbb I}}
+\newcommand\BBR {{\mathbb R}}
+\newcommand\BBZ {{\mathbb Z}}
+\newcommand\BBC{{\mathbb C}}
+
+% tilde
+\newcommand\ta{{\tilde a}}
+\newcommand\tb{{\tilde b}}
+\newcommand\tc{{\tilde c}}
+\newcommand\td{{\tilde d}}
+\newcommand\te{{\tilde e}}
+\newcommand\tf{{\tilde f}}
+\newcommand\tg{{\tilde g}}
+% \newcommand\th{{\tilde h}}
+\newcommand\ti{{\tilde i}}
+\newcommand\tj{{\tilde j}}
+\newcommand\tk{{\tilde k}}
+\newcommand\tl{{\tilde l}}
+\newcommand\tm{{\tilde m}}
+\newcommand\tn{{\tilde n}}
+%\newcommand\to{{\tilde o}}
+\newcommand\tp{{\tilde p}}
+\newcommand\tq{{\tilde q}}
+\newcommand\ts{{\tilde s}}
+%\newcommand\tt{{\tilde t}}
+\newcommand\tu{{\tilde u}}
+\newcommand\tv{{\tilde v}}
+\newcommand\tw{{\tilde w}}
+\newcommand\tx{{\tilde x}}
+\newcommand\ty{{\tilde y}}
+\newcommand\tz{{\tilde z}}
+\newcommand\ep{{\epsilon}}
+%\newcommand\trace{{\operatorname{trace}}}
+\newcommand\sign{{\operatorname{sign}}}
+%\newcommand\hess{{\operatorname{Hess}}}
+\newcommand\Dyson{{\operatorname{Dyson}}}
+\renewcommand\th{{\operatorname{th}}}
+
+\def\x{{\bf X}}
+\def\y{{\bf Y}}
+%\def\I#1{{\bf 1}_{#1}}
+\def\mb{\mbox}
+
+\newcommand\eqDist{{\overset{d}{=}}}
+%%%%%%%%%%%%%%  PAGE SETUP %%%%%%%%%%%%%%%%%
+\parindent = 5 pt
+% \parskip = 12 pt
+\usepackage[margin=1.5in]{geometry}
+\usepackage{fancyhdr}
+\pagestyle{headings}
+\usepackage{fancyvrb}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{mdframed}
+\hypersetup{
+    colorlinks,
+    citecolor=black,
+    filecolor=black,
+    linkcolor=black,
+    urlcolor=black
+}
+% \lhead{Kenneth Lai} % Left Header
+% \rhead{\thepage} % Right Header
+\cfoot{} % Center Foot (empty)
+
+%%%%%%%%%%%%%%  Title and TOC %%%%%%%%%%%%%%%%%
+\begin{document}
+\title{CS170 Project Report (Fall 2017)}
+\author{Micah Carroll, Orkun Duman, Kenneth Lai}
+\maketitle
+\tableofcontents
+\eject
+%%%%%%%%%%%%%%  START CONTENT %%%%%%%%%%%%%%%%%
+\section{Main Idea.} We propose a reduction of the problem into a 3-Satisfiability(3-SAT) and solved it using simulated annealing. Suppose that we have $n$ wizards in the input files with random values denoted $w_1, \dots, w_n$. Then we produce ${n \choose 2}$ literals $X_{i, j}$ where \[X_{i, j} \Rightarrow w_i < w_j\] \[\neg X_{i, j} \Rightarrow w_i > w_j\] Then given the input files of relative ordering of wizards, we can generate our satisfiability clauses. In particular, each line $w_i, w_j, w_k$ can be translated as $(w_k < w_i \vee w_k > w_j) \wedge (w_k < w_j \vee w_k > w_i)$. Equivalently, \[(X_{k, i} \vee X_{j, k}) \wedge (X_{k, j} \vee X_{i, k})\] Where we naturally define $X_{i, j} = \neg X_{j, i}$ if one of them is not defined. Also, we add extra condition of transitivity for comparison, since $w_i < w_j \wedge w_j < w_k \Rightarrow w_i < w_k$. In our literals, this means we have a clause \[(\neg X_{i, j} \vee \neg X_{j, k} \vee X_{i, k})\] for each triplet. We aggregate all the clause mentioned above to define a 3SAT problem. For the smaller inputs (up to around 100) we simply solve it with a python inplemented 3SAT library (pycosat). For the inputs with larger input, we run a local search with simulated annealing: assigning literals and optimize over the number of constraints violated. With well chosen parameters we reached global optimum for all our problems. Then we use assignments of $X_{i, j}$ that satisfy all our constraints to recreate a valid ordering of the wizards.
+
+\section{Libraries.}
+\subsection{pycosat} We used an python implemented 3SAT solver initially to solve inputs with sizes up to $~100$. To install, run \texttt{pip install pycosat} on the terminal. 
+\subsection{simanneal} \texttt{simanneal} is a multipupose simmulated annealing library. We used it to do local search to solve large input sizes. To install, run \texttt{pip install simanneal} on the terminal.
+
+\section{Instructions.}
+Run the solver by:\\
+\texttt{python3 solver.py input.in output.out} \\\\
+If you want to print verbose debug messages add the \texttt{ -d } flag: \\
+\texttt{python3 solver.py input.in output.out -d} \\\\
+You can also solve all files in a directory in order and pipe the outputs to another directory:\\
+\texttt{python3 solver.py phase2/inputs phase2/outputs}\\
+
+\section{Code.}
+The files we wrote include: 
+\begin{enumerate}
+    \item \texttt{SAT3.py}
+    \item \texttt{solver.py}
+    \item \texttt{code\_generator.py} (used to generate random test inputs)
+    \item \texttt{randomized3SAT.py} (deprecated)
+    \item \texttt{solver2.py} (deprecated)
+\end{enumerate}
+
+\subsection{SAT3.py}
+includes class files for solvers
+\begin{lstlisting}
+    import pycosat
+    
+    class SAT3(object):
+        def __init__(self, clauses, variables):
+            self.clauses = clauses
+            self.variables = variables
+    
+    class LocalSearch(SAT3):
+        def solve(self, depth=1000):
+            for i in range(depth):
+                self.switch_one()
+            
+        def switch_one(self):
+            for clause in self.clauses: 
+                if not clause.satisfied:
+                    best_change = 0
+                    best_variable = None
+                    for var in clause.variables:
+                        change = self.try_switch(var)
+                        print(change)
+                        if change > best_change:
+                            best_change = change
+                            best_variable = var
+    
+                    if best_variable:
+                        print("Switching {} with {} change".format(best_variable, best_change))
+                        best_variable.switch()
+                        break
+    
+        def try_switch(self, variable):
+            current = self.num_satisfied()
+            variable.switch()
+            with_switch = self.num_satisfied()
+            variable.switch()
+            return with_switch - current
+    
+        def num_satisfied(self):
+            return sum([clause.satisfied for clause in self.clauses])
+    
+    class PycosatSolver(SAT3):
+    
+        def solve(self):
+            pycosat_clauses = self.convert_to_pycosat(self.variables.encoder)
+            pycosat_solution = pycosat.solve(pycosat_clauses)
+            self.set_variables_from_pycosat(pycosat_solution, self.variables.decoder)
+    
+        def convert_to_pycosat(self, encoder):
+            pycosat_instance = []
+            for clause in self.clauses:
+                pycosat_clause = []
+                for item in zip(clause.variables, clause.truth_values):
+                    truth_value = item[1]
+                    encoded_variable = encoder[item[0]]
+                    if not truth_value:
+                        encoded_variable *= -1
+                    pycosat_clause.append(encoded_variable)
+                pycosat_instance.append(pycosat_clause)
+            return pycosat_instance
+            
+        def set_variables_from_pycosat(self, pycosat_solution, decoder):
+            for var in pycosat_solution:
+                if var < 0:
+                    decoder[-var].state = 0
+                else:
+                    decoder[var].state = 1
+\end{lstlisting}
+
+\subsection{solver.py}
+Include various structs and the main solver method
+\begin{lstlisting}
+    import os
+    import re
+    import time
+    import math
+    import random
+    import pycosat
+    import argparse
+    import itertools
+    import simanneal
+    import output_validator
+    
+    DEBUG = False
+    
+    class Variable:
+        def __init__(self, wizard1, wizard2):
+            self.wizard1 = min(wizard1, wizard2)
+            self.wizard2 = max(wizard1, wizard2)
+        
+        def __eq__(self, other):
+            return self.wizard1 == other.wizard1 and self.wizard2 == other.wizard2
+    
+        def __hash__(self):
+            return hash(self.wizard1 + self.wizard2)
+        
+        def __repr__(self):
+            return "Variable: {} BEFORE {}".format(self.wizard1, self.wizard2)
+    
+    class VariableList:
+        def __init__(self, wizards):
+            combinations = list((itertools.combinations(wizards, 2)))
+            variables = [Variable(wizard1, wizard2) for wizard1, wizard2 in combinations]
+            self.encoder = {}
+            for i in range(len(variables)):
+                self.encoder[variables[i]] = i + 1
+            
+        def encode_variable(self, variable):
+            return self.encoder[variable]
+        
+        def __len__(self):
+            return len(self.encoder)
+    
+        def __repr__(self):
+            result = "Variable List <size: {}>".format(len(self.encoder))
+            for variable in self.encoder:
+                result += "\n{} -> {}".format(self.encoder[variable], str(variable))
+            return result
+    
+    class Literal:
+        def __init__(self, variable, value):
+            self.variable = variable
+            self.value = value
+        
+        def to_pycosat(self, variable_list):
+            multiplier = 1 if self.value else -1
+            return variable_list.encode_variable(self.variable) * multiplier
+        
+        def __repr__(self):
+            assigned = "TRUE" if self.value else "FALSE"
+            return "Literal: <{}> set to {}".format(str(self.variable), assigned)
+    
+    class Constraint:
+        def __init__(self, triplet):
+            assert(len(triplet) == 3)
+            self.bound1 = triplet[0]
+            self.bound2 = triplet[1]
+            self.middle = triplet[2]
+        
+        # For each constraint "middle not between bound1 and bound2"
+        # return a caluse of the form:
+        # (bound1 < middle OR bound2 > middle) AND (bound2 < middle OR bound1 > middle).
+        def to_clause(self, variable_list):
+            a1 = Literal(Variable(self.bound1, self.middle), self.bound1 < self.middle)
+            a2 = Literal(Variable(self.bound2, self.middle), self.bound2 > self.middle)
+            b1 = Literal(Variable(self.bound2, self.middle), self.bound2 < self.middle)
+            b2 = Literal(Variable(self.bound1, self.middle), self.bound1 > self.middle)
+            return [Clause([a1, a2]), Clause([b1, b2])]
+    
+    class Clause(object):
+        def __init__(self, literals):
+            self.literals = literals
+        
+        def to_pycosat(self, variable_list):
+            return [literal.to_pycosat(variable_list) for literal in self.literals]
+    
+        def __repr__(self):
+            return "Clause:" + " OR ".join([str(literal) for literal in self.literals])
+    
+    def solve(num_wizards, num_constraints, wizards, constraints, data = None):
+        # Pre-processing.
+        processing_start = time.time()
+        if DEBUG:
+            print("Input with {} wizards and {} constraints.".format(len(wizards), len(constraints)))
+        random.shuffle(wizards)
+    
+        # Generate all possible variables of 2 wizards each.
+        variables = VariableList(wizards)
+        assert(len(variables) == len(wizards) * (len(wizards) - 1) / 2)
+        if DEBUG:
+            print(variables)
+    
+        # Convert constraints to SAT clauses.
+        clauses = []
+        for triplet in constraints:
+            constraint = Constraint(triplet)
+            clause_pair = constraint.to_clause(variables)
+            clauses.extend(clause_pair)
+        assert(len(clauses) == len(constraints) * 2)
+    
+        # Add 3-Term clauses to prevent loops.
+        sorted_wizards = sorted(wizards)
+        for i in range(len(sorted_wizards)):
+            for j in range(i + 1, len(sorted_wizards)):
+                for k in range(j + 1, len(sorted_wizards)):
+                    w1, w2, w3 = sorted_wizards[i], sorted_wizards[j], sorted_wizards[k]
+                    a1 = Literal(Variable(w1, w2), False)
+                    a2 = Literal(Variable(w1, w3), True)
+                    a3 = Literal(Variable(w2, w3), False)
+                    clauses.append(Clause([a1, a2, a3]))
+                    b1 = Literal(Variable(w1, w2), True)
+                    b2 = Literal(Variable(w1, w3), False)
+                    b3 = Literal(Variable(w2, w3), True)
+                    clauses.append(Clause([b1, b2, b3]))
+        assert(len(clauses) == len(constraints) * 2 + len(list(itertools.combinations(range(len(wizards)), 3))) * 2)
+        if DEBUG:
+            print("Clauses (first 100):\n", clauses[:100])
+    
+        # Solve using pycosat.
+        pycosat_input = [clause.to_pycosat(variables) for clause in clauses]
+        algorithm_start = time.time()
+        print("Calling Pycosat to solve the problem.")
+        pycosat_output = pycosat.solve(pycosat_input)
+        print("Pycosat returned an assignment.")
+        algorithm_duration = round(time.time() - algorithm_start, 2)
+    
+        # Decode pycosat solution.
+        assignments = {}
+        for assignment in pycosat_output:
+            assignments[abs(assignment)] = True if assignment >= 0 else False
+        if DEBUG:
+            print("Pycosat Assignments:\n", pycosat_output)
+    
+        # Find a valid ordering of wizards.
+        solution = []
+        for wizard in wizards:
+            target_index = 0
+            for i in range(len(solution)):
+                variable = Variable(solution[i], wizard)
+                value = assignments[variables.encode_variable(variable)]
+                if variable.wizard1 != solution[i]:
+                    value = not value
+                if value:
+                    target_index = i + 1
+            solution.insert(target_index, wizard)
+        if DEBUG:
+            print("Solution:", solution)
+        
+        # Completion info.
+        processing_duration = round(time.time() - processing_start, 2) - algorithm_duration
+        print("Solver complete. Algorithm took {} seconds. Processing took {} seconds.".format(algorithm_duration, processing_duration))
+        return solution
+    
+    class WizardSolver(simanneal.Annealer):
+        Tmax = 60       # Max (starting) temperature (over-written below)
+        Tmin = 0.01        # Min (ending) temperature
+        steps = 1000000  # Number of iterations
+        updates = steps / 100   # Number of updates (by default an update prints to stdout)
+    
+        def __init__(self, wizards, constraints):
+            self.constraints = constraints
+            #self.Tmax = 10 + math.sqrt(len(constraints))
+            super(WizardSolver, self).__init__(wizards) 
+    
+        def move(self):
+            a = random.randint(0, len(self.state) - 1)
+            b = random.randint(0, len(self.state) - 1)
+            self.state[a], self.state[b] = self.state[b], self.state[a]
+        
+        def energy(self):
+            output_ordering_set = set(self.state)
+            output_ordering_map = {k: v for v, k in enumerate(self.state)}
+            not_satisfied = 0
+            for constraint in self.constraints:
+                c = constraint # Creating an alias for easy reference
+                m = output_ordering_map # Creating an alias for easy reference
+                wiz_a = m[c[0]]
+                wiz_b = m[c[1]]
+                wiz_mid = m[c[2]]
+                if (wiz_a < wiz_mid < wiz_b) or (wiz_b < wiz_mid < wiz_a):
+                    not_satisfied += 1
+            return not_satisfied
+    
+    def anneal(num_wizards, num_constraints, wizards, constraints, data = None):
+        # Pre-processing.
+        algorithm_start = time.time()
+        if DEBUG:
+            print("Input with {} wizards and {} constraints.".format(len(wizards), len(constraints)))
+        random.shuffle(wizards)
+    
+        # Start simulated annealing.
+        start_state = data if data is not None else wizards
+        solver = WizardSolver(start_state, constraints)
+        print("Starting with ordering where {} constrains are violated.".format(solver.energy()))
+        if solver.energy() < 100:
+            solver.Tmax = 1
+        if solver.energy() < 25:
+            solver.Tmax = 0.5
+        if solver.energy() < 10:
+            solver.Tmax = 0.01
+        solution, num_constraints_failed = solver.anneal()
+        
+        # Completion info.
+        algorithm_duration = round(time.time() - algorithm_start, 2)
+        print("\nSolver complete. Algorithm took {} seconds.".format(algorithm_duration))
+        return solution
+    
+    """
+    ======================================================================
+       Input parsing happens below this line.
+    ======================================================================
+    """
+    
+    def read_input(filename):
+        with open(filename) as f:
+            num_wizards = int(f.readline())
+            num_constraints = int(f.readline())
+            constraints = []
+            wizards = set()
+            for _ in range(num_constraints):
+                c = f.readline().split()
+                constraints.append(c)
+                for w in c:
+                    wizards.add(w)
+        wizards = list(wizards)
+        return num_wizards, num_constraints, wizards, constraints
+    
+    def write_output(filename, solution):
+        with open(filename, "w") as f:
+            for wizard in solution:
+                f.write("{0} ".format(wizard))
+    
+    def atoi(text):
+        return int(text) if text.isdigit() else text
+    
+    def natural_keys(text):
+        '''
+        alist.sort(key=natural_keys) sorts in human order
+        http://nedbatchelder.com/blog/200712/human_sorting.html
+        (See Toothy's implementation in the comments)
+        '''
+        return [atoi(c) for c in re.split('(\d+)', text)]
+    
+    if __name__ == "__main__":
+        parser = argparse.ArgumentParser(description = "Constraint Solver.")
+        parser.add_argument(
+            "input",
+            type=str,
+            help = "provide a file/folder where inputs should be read from")
+        parser.add_argument(
+            "output",
+            type=str,
+            help = "provide a file/folder where outputs should be saved")
+        parser.add_argument(
+            "--anneal", "-a",
+            dest="anneal",
+            action="store_true",
+            help="use simulated annealing instead of 3SAT")
+        parser.add_argument(
+            "--start",
+            dest="start",
+            help="use the wizard ordering in this file as the starting state")
+        parser.add_argument(
+            "--debug", "-d",
+            dest="debug",
+            action="store_true",
+            help="print out verbose debug messages")
+        args = parser.parse_args()
+    
+        if args.debug:
+            DEBUG = True
+    
+        start_state = None
+        if args.start:
+            with open(args.start, "r") as start_file:
+                start_state = start_file.readline().split()
+        
+        inputs = [args.input]
+        if os.path.isdir(args.input):
+            inputs = [os.path.join(args.input, f) for f in os.listdir(args.input) if os.path.isfile(os.path.join(args.input, f)) and f.endswith(".in")]
+            inputs.sort(key=natural_keys)
+        
+        for input_file in inputs:
+            if not os.path.isdir(args.output):
+                output_file = args.output
+            else:
+                output_file = os.path.join(args.output, os.path.split(input_file)[1].replace(".in", ".out").replace("input", "output"))
+            if len(inputs) > 1 and os.path.isfile(output_file):
+                try:
+                    if len(output_validator.processInput(input_file, output_file)[2]) == 0:
+                        print("File {} already has a valid solution in {}, skipping.".format(input_file, output_file))
+                        continue
+                except:
+                    pass
+            num_wizards, num_constraints, wizards, constraints = read_input(input_file)
+            print("Solving file: {} ({} wizards, {} constraints)".format(input_file, num_wizards, num_constraints))
+            f = anneal if args.anneal else solve
+            solution = f(num_wizards, num_constraints, wizards, constraints, start_state)
+            write_output(output_file, solution)
+            constraints_satisfied, num_constraints, constraints_failed = output_validator.processInput(input_file, output_file)
+            if constraints_satisfied == num_constraints:
+                print("Solution file {} verified!".format(output_file))
+            else:
+                print("Solution file {} did not satisfy {}/{} constraints.".format(output_file, len(constraints_failed), num_constraints))
+    
+\end{lstlisting}
+
+%%%%%%%%%%%%%%  END CONTENT %%%%%%%%%%%%%%%%%
+\end{document}
