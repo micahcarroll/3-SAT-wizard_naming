@@ -1,5 +1,6 @@
 import os
 import re
+import sys
 import time
 import math
 import random
@@ -10,6 +11,7 @@ import simanneal
 import output_validator
 
 DEBUG = False
+PHASE3_ASSIGNMENTS = "submission_4718752_inputs_input20.in,submission_4714724_input20.in,submission_4704348_input20.in,submission_4710132_inputs_input35.in,submission_4699130_input20.in,submission_4714897_input35.in,submission_4614378_inputs_input20.in,submission_4650900_input35.in,submission_4717644_input20.in,submission_4715459_inputs_input20.in,submission_4699033_input35.in,submission_4712182_inputs_input35.in,submission_4716271_input50.in,submission_4718264_inputs_input20.in,submission_4706128_input35.in,submission_4718771_inputs_input20.in,submission_4718317_inputs_input35.in,submission_4694872_inputs_input20.in,submission_4700810_input50.in,submission_4710107_input50.in,submission_4711880_input50.in,submission_4620699_input35.in,submission_4694872_inputs_input50.in,submission_4718439_input50.in,submission_4620699_input50.in,submission_4718690_inputs_input50.in,submission_4709616_inputs_input35.in,submission_4694224_input20.in,submission_4718317_inputs_input50.in,submission_4718113_inputs_input20.in,submission_4614378_inputs_input50.in,submission_4716635_inputs_input35.in,submission_4716992_input50.in,submission_4681981_input50.in,submission_4708792_inputs_input50.in,submission_4712937_inputs_input20.in,submission_4713735_inputs_input35.in,submission_4715936_inputs_input50.in,submission_4702980_input35.in,submission_4718037_inputs_input35.in,submission_4660979_inputs_input20.in,submission_4714821_input50.in,submission_4714364_input50.in,submission_4716827_inputs_input50.in,submission_4702546_inputs_input35.in,submission_4714637_input20.in,submission_4712193_input35.in,submission_4718733_input50.in,submission_4696578_input20.in"
 
 class Variable:
     def __init__(self, wizard1, wizard2):
@@ -91,6 +93,7 @@ def solve(num_wizards, num_constraints, wizards, constraints, data = None):
     if DEBUG:
         print("Input with {} wizards and {} constraints.".format(len(wizards), len(constraints)))
     random.shuffle(wizards)
+    constraints = [constraint for constraint in constraints if len(constraint) == len(set(constraint))]
 
     # Generate all possible variables of 2 wizards each.
     variables = VariableList(wizards)
@@ -155,7 +158,7 @@ def solve(num_wizards, num_constraints, wizards, constraints, data = None):
         print("Solution:", solution)
     
     # Completion info.
-    processing_duration = round(time.time() - processing_start, 2) - algorithm_duration
+    processing_duration = round(time.time() - processing_start - algorithm_duration, 2)
     print("Solver complete. Algorithm took {} seconds. Processing took {} seconds.".format(algorithm_duration, processing_duration))
     return solution
 
@@ -269,6 +272,11 @@ if __name__ == "__main__":
         dest="start",
         help="use the wizard ordering in this file as the starting state")
     parser.add_argument(
+        "--phase3",
+        dest="phase3",
+        action="store_true",
+        help="only solve the files whose names are specified in the phase3 assignments variable")
+    parser.add_argument(
         "--debug", "-d",
         dest="debug",
         action="store_true",
@@ -282,17 +290,29 @@ if __name__ == "__main__":
     if args.start:
         with open(args.start, "r") as start_file:
             start_state = start_file.readline().split()
+        if not os.path.isfile(args.input):
+            print("Passing in a state via the --start flag requires that you supply a valid file for the input.")
+            sys.exit()
     
     inputs = [args.input]
     if os.path.isdir(args.input):
-        inputs = [os.path.join(args.input, f) for f in os.listdir(args.input) if os.path.isfile(os.path.join(args.input, f)) and f.endswith(".in")]
-        inputs.sort(key=natural_keys)
+        if args.phase3:
+            inputs = [os.path.join(args.input, f) for f in PHASE3_ASSIGNMENTS.split(',')]
+        else:
+            inputs = [os.path.join(args.input, f) for f in os.listdir(args.input) if os.path.isfile(os.path.join(args.input, f)) and f.endswith(".in")]
+            inputs.sort(key=natural_keys)
+    elif args.phase3:
+        print("Running phase3 files required that you pass in a directory where the phase3 files are stored.")
+        sys.exit()
     
     for input_file in inputs:
         if not os.path.isdir(args.output):
             output_file = args.output
         else:
-            output_file = os.path.join(args.output, os.path.split(input_file)[1].replace(".in", ".out").replace("input", "output"))
+            file_name = os.path.split(input_file)[1].replace(".in", ".out")
+            if not args.phase3:
+                file_name = file_name.replace("input", "output")
+            output_file = os.path.join(args.output, file_name)
         if len(inputs) > 1 and os.path.isfile(output_file):
             try:
                 if len(output_validator.processInput(input_file, output_file)[2]) == 0:
